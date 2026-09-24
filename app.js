@@ -1,9 +1,15 @@
-const STORAGE_KEY =
-  "gacha-pocket-main-v2";
+/* =========================================
+   ガチャポケット app.js
+   iPhone / GitHub Pages 対応版
+========================================= */
 
-const SETTINGS_KEY =
-  "gacha-pocket-settings-v1";
+const STORAGE_KEY = "gacha-pocket-main-v2";
+const SETTINGS_KEY = "gacha-pocket-settings-v1";
 
+
+/* =========================================
+   初期データ
+========================================= */
 
 const sampleData = [
   {
@@ -11,7 +17,7 @@ const sampleData = [
     title: "ぽてっとハムスター",
     releaseDate: "2026-12-01",
     image: "",
-    url: "https://x.com/",
+    url: "",
     memo: "見つけたら回す！",
     author: "よしの",
     createdAt: 3
@@ -21,7 +27,7 @@ const sampleData = [
     title: "レトロ喫茶マスコット",
     releaseDate: "2026-11-01",
     image: "",
-    url: "https://x.com/",
+    url: "",
     memo: "クリームソーダ狙い",
     author: "たけうち",
     createdAt: 2
@@ -46,35 +52,34 @@ const defaultSettings = {
 };
 
 
-let gachas =
-  loadData();
+/* =========================================
+   状態
+========================================= */
 
-let settings =
-  loadSettings();
+let gachas = loadData();
 
-let currentFilter =
-  "all";
+let settings = loadSettings();
 
-let currentAuthor =
-  settings.user;
+let currentFilter = "all";
 
-let currentImage =
-  "";
+let currentAuthor = settings.user;
 
-let viewMode =
-  settings.view;
+let currentImage = "";
 
-let editingId =
-  null;
+let viewMode = settings.view;
 
-let detailId =
-  null;
+let editingId = null;
 
-let savedScrollY =
-  0;
+let detailId = null;
+
+let savedScrollY = 0;
+
+let toastTimer = null;
 
 
-/* ELEMENTS */
+/* =========================================
+   DOM取得
+========================================= */
 
 const cards =
   document.getElementById("cards");
@@ -152,16 +157,16 @@ const toast =
   document.getElementById("toast");
 
 
-/* STORAGE */
+/* =========================================
+   localStorage
+========================================= */
 
 function loadData() {
 
   try {
 
     const saved =
-      localStorage.getItem(
-        STORAGE_KEY
-      );
+      localStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
       return [...sampleData];
@@ -170,11 +175,18 @@ function loadData() {
     const parsed =
       JSON.parse(saved);
 
-    return Array.isArray(parsed)
-      ? parsed
-      : [...sampleData];
+    if (!Array.isArray(parsed)) {
+      return [...sampleData];
+    }
 
-  } catch {
+    return parsed;
+
+  } catch (error) {
+
+    console.error(
+      "データ読み込みエラー",
+      error
+    );
 
     return [...sampleData];
 
@@ -192,11 +204,20 @@ function saveData() {
       JSON.stringify(gachas)
     );
 
-  } catch {
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "保存エラー",
+      error
+    );
 
     alert(
-      "保存できませんでした。画像が大きすぎる可能性があります。"
+      "保存できませんでした。画像の容量が大きすぎる可能性があります。"
     );
+
+    return false;
 
   }
 
@@ -213,7 +234,9 @@ function loadSettings() {
       );
 
     if (!saved) {
-      return {...defaultSettings};
+      return {
+        ...defaultSettings
+      };
     }
 
     return {
@@ -223,7 +246,9 @@ function loadSettings() {
 
   } catch {
 
-    return {...defaultSettings};
+    return {
+      ...defaultSettings
+    };
 
   }
 
@@ -232,15 +257,28 @@ function loadSettings() {
 
 function saveSettings() {
 
-  localStorage.setItem(
-    SETTINGS_KEY,
-    JSON.stringify(settings)
-  );
+  try {
+
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify(settings)
+    );
+
+  } catch (error) {
+
+    console.error(
+      "設定保存エラー",
+      error
+    );
+
+  }
 
 }
 
 
-/* HELPERS */
+/* =========================================
+   共通
+========================================= */
 
 function escapeHTML(value) {
 
@@ -285,6 +323,10 @@ function formatDate(date) {
 }
 
 
+/* =========================================
+   画像なし表示
+========================================= */
+
 function placeholderHTML(
   detail = false
 ) {
@@ -319,7 +361,9 @@ function placeholderHTML(
 }
 
 
-/* RENDER */
+/* =========================================
+   カード
+========================================= */
 
 function createCard(item) {
 
@@ -345,6 +389,8 @@ function createCard(item) {
     <article
       class="gacha-card"
       data-id="${item.id}"
+      role="button"
+      tabindex="0"
     >
 
       ${imageHTML}
@@ -374,9 +420,9 @@ function createCard(item) {
 
         <div class="card-memo">
           ${
-            escapeHTML(item.memo)
-            ||
-            "メモなし"
+            item.memo
+              ? escapeHTML(item.memo)
+              : "メモなし"
           }
         </div>
 
@@ -388,13 +434,22 @@ function createCard(item) {
 }
 
 
+/* =========================================
+   一覧描画
+========================================= */
+
 function render() {
+
+  if (!cards) {
+    return;
+  }
 
   const keyword =
     searchInput
-      .value
-      .trim()
-      .toLowerCase();
+      ? searchInput.value
+          .trim()
+          .toLowerCase()
+      : "";
 
 
   let result =
@@ -406,7 +461,7 @@ function render() {
         item.author === currentFilter;
 
 
-      const text =
+      const searchText =
         [
           item.title,
           item.memo,
@@ -418,43 +473,41 @@ function render() {
 
       return (
         authorMatch &&
-        text.includes(keyword)
+        searchText.includes(keyword)
       );
 
     });
 
 
-  result =
-    [...result];
+  result = [...result];
 
 
-  if (
-    sortSelect.value ===
-    "new"
-  ) {
+  const sortValue =
+    sortSelect
+      ? sortSelect.value
+      : settings.sort;
+
+
+  if (sortValue === "new") {
 
     result.sort(
-      (a,b) =>
-        (b.createdAt || 0)
+      (a, b) =>
+        Number(b.createdAt || 0)
         -
-        (a.createdAt || 0)
+        Number(a.createdAt || 0)
     );
 
   }
 
 
-  if (
-    sortSelect.value ===
-    "release"
-  ) {
+  if (sortValue === "release") {
 
     result.sort(
-      (a,b) =>
+      (a, b) =>
         (
           a.releaseDate ||
           "9999-99-99"
-        )
-        .localeCompare(
+        ).localeCompare(
           b.releaseDate ||
           "9999-99-99"
         )
@@ -463,17 +516,15 @@ function render() {
   }
 
 
-  if (
-    sortSelect.value ===
-    "title"
-  ) {
+  if (sortValue === "title") {
 
     result.sort(
-      (a,b) =>
-        a.title.localeCompare(
-          b.title,
-          "ja"
-        )
+      (a, b) =>
+        String(a.title)
+          .localeCompare(
+            String(b.title),
+            "ja"
+          )
     );
 
   }
@@ -485,8 +536,12 @@ function render() {
       .join("");
 
 
-  empty.hidden =
-    result.length !== 0;
+  if (empty) {
+
+    empty.hidden =
+      result.length !== 0;
+
+  }
 
 
   cards.classList.toggle(
@@ -497,38 +552,51 @@ function render() {
 }
 
 
-/* VIEW */
+/* =========================================
+   写真 / リスト
+========================================= */
 
 function setViewMode(
   mode,
   save = true
 ) {
 
-  viewMode =
-    mode;
+  viewMode = mode;
 
 
-  photoButton.classList.toggle(
-    "active",
-    mode === "photo"
-  );
+  if (photoButton) {
 
-  listButton.classList.toggle(
-    "active",
-    mode === "list"
-  );
+    photoButton.classList.toggle(
+      "active",
+      mode === "photo"
+    );
+
+  }
 
 
-  cards.classList.toggle(
-    "list-mode",
-    mode === "list"
-  );
+  if (listButton) {
+
+    listButton.classList.toggle(
+      "active",
+      mode === "list"
+    );
+
+  }
+
+
+  if (cards) {
+
+    cards.classList.toggle(
+      "list-mode",
+      mode === "list"
+    );
+
+  }
 
 
   if (save) {
 
-    settings.view =
-      mode;
+    settings.view = mode;
 
     saveSettings();
 
@@ -537,68 +605,9 @@ function setViewMode(
 }
 
 
-photoButton.onclick =
-  () => setViewMode("photo");
-
-
-listButton.onclick =
-  () => setViewMode("list");
-
-
-searchInput.oninput =
-  render;
-
-
-sortSelect.onchange =
-  () => {
-
-    settings.sort =
-      sortSelect.value;
-
-    saveSettings();
-
-    render();
-
-  };
-
-
-/* FILTER */
-
-document
-  .querySelectorAll(
-    ".filter-button"
-  )
-  .forEach(button => {
-
-    button.onclick =
-      () => {
-
-        currentFilter =
-          button.dataset.filter;
-
-
-        document
-          .querySelectorAll(
-            ".filter-button"
-          )
-          .forEach(item => {
-
-            item.classList.toggle(
-              "active",
-              item === button
-            );
-
-          });
-
-
-        render();
-
-      };
-
-  });
-
-
-/* SCREEN LOCK */
+/* =========================================
+   オーバーレイ
+========================================= */
 
 function lockBackground() {
 
@@ -634,20 +643,11 @@ function lockBackground() {
 
 function unlockBackground() {
 
-  document.body.style.position =
-    "";
-
-  document.body.style.top =
-    "";
-
-  document.body.style.left =
-    "";
-
-  document.body.style.right =
-    "";
-
-  document.body.style.width =
-    "";
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
 
 
   window.scrollTo(
@@ -660,11 +660,16 @@ function unlockBackground() {
 
 function openScreen(screen) {
 
+  if (!screen) {
+    return;
+  }
+
+
   lockBackground();
 
-  screen.classList.add(
-    "open"
-  );
+
+  screen.classList.add("open");
+
 
   screen.setAttribute(
     "aria-hidden",
@@ -677,18 +682,34 @@ function openScreen(screen) {
       ".form-screen"
     );
 
+
   if (inner) {
-    inner.scrollTop = 0;
+
+    requestAnimationFrame(
+      () => {
+        inner.scrollTop = 0;
+      }
+    );
+
   }
 
 }
 
 
-function closeScreen(screen) {
+function closeScreen(
+  screen,
+  unlock = true
+) {
+
+  if (!screen) {
+    return;
+  }
+
 
   screen.classList.remove(
     "open"
   );
+
 
   screen.setAttribute(
     "aria-hidden",
@@ -696,56 +717,26 @@ function closeScreen(screen) {
   );
 
 
-  const anyOpen =
-    document.querySelector(
-      ".screen-overlay.open"
-    );
+  if (unlock) {
+
+    const anotherOpen =
+      document.querySelector(
+        ".screen-overlay.open"
+      );
 
 
-  if (!anyOpen) {
-    unlockBackground();
-  }
-
-}
-
-
-/* IMAGE STATE */
-
-function updateImageUI() {
-
-  const hasImage =
-    Boolean(currentImage);
-
-
-  imagePlaceholder.hidden =
-    hasImage;
-
-
-  imageSelectedArea.hidden =
-    !hasImage;
-
-
-  selectImageButton.hidden =
-    hasImage;
-
-
-  if (hasImage) {
-
-    imagePreview.src =
-      currentImage;
-
-  } else {
-
-    imagePreview.removeAttribute(
-      "src"
-    );
+    if (!anotherOpen) {
+      unlockBackground();
+    }
 
   }
 
 }
 
 
-/* ADD */
+/* =========================================
+   入力者
+========================================= */
 
 function setAuthor(author) {
 
@@ -770,139 +761,90 @@ function setAuthor(author) {
 }
 
 
-function openAddScreen() {
+/* =========================================
+   画像UI
+========================================= */
 
-  editingId =
-    null;
+function updateImageUI() {
 
-
-  addForm.reset();
-
-
-  currentImage =
-    "";
-
-
-  setAuthor(
-    settings.user
-  );
+  const hasImage =
+    typeof currentImage ===
+      "string"
+    &&
+    currentImage.length > 20;
 
 
-  updateImageUI();
+  if (imagePlaceholder) {
+
+    imagePlaceholder.style.display =
+      hasImage
+        ? "none"
+        : "flex";
+
+    imagePlaceholder.hidden =
+      hasImage;
+
+  }
 
 
-  formScreenTitle.textContent =
-    "ガチャを追加";
+  if (imageSelectedArea) {
+
+    imageSelectedArea.style.display =
+      hasImage
+        ? "block"
+        : "none";
+
+    imageSelectedArea.hidden =
+      !hasImage;
+
+  }
 
 
-  formScreenSubtitle.textContent =
-    "ポケットに入れておこう";
+  if (selectImageButton) {
+
+    selectImageButton.style.display =
+      hasImage
+        ? "none"
+        : "flex";
+
+    selectImageButton.hidden =
+      hasImage;
+
+  }
 
 
-  saveButton.lastChild.textContent =
-    " ポケットに入れる";
+  if (imagePreview) {
 
+    if (hasImage) {
 
-  openScreen(
-    addScreen
-  );
+      imagePreview.src =
+        currentImage;
+
+      imagePreview.style.display =
+        "block";
+
+    } else {
+
+      imagePreview.removeAttribute(
+        "src"
+      );
+
+      imagePreview.style.display =
+        "none";
+
+    }
+
+  }
 
 }
 
 
-addButton.onclick =
-  openAddScreen;
+/* =========================================
+   画像圧縮
+========================================= */
 
-
-document
-  .querySelectorAll(
-    ".author-button"
-  )
-  .forEach(button => {
-
-    button.onclick =
-      () =>
-        setAuthor(
-          button.dataset.author
-        );
-
-  });
-
-
-/* IMAGE SELECT */
-
-imageInput.onchange =
-  event => {
-
-    const file =
-      event.target.files[0];
-
-
-    if (!file) {
-      return;
-    }
-
-
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-
-      alert(
-        "画像ファイルを選んでね"
-      );
-
-      return;
-
-    }
-
-
-    const reader =
-      new FileReader();
-
-
-    reader.onload =
-      loadEvent => {
-
-        resizeImage(
-          loadEvent.target.result,
-          result => {
-
-            currentImage =
-              result;
-
-            updateImageUI();
-
-          }
-        );
-
-      };
-
-
-    reader.readAsDataURL(
-      file
-    );
-
-  };
-
-
-removeImageButton.onclick =
-  () => {
-
-    currentImage =
-      "";
-
-    imageInput.value =
-      "";
-
-    updateImageUI();
-
-  };
-
-
-function resizeImage(
-  source,
+function compressImage(
+  dataURL,
   callback
 ) {
 
@@ -911,29 +853,36 @@ function resizeImage(
 
 
   image.onload =
-    () => {
+    function () {
 
-      const maxSize =
-        900;
+      const MAX_WIDTH = 900;
+      const MAX_HEIGHT = 900;
+
+
+      let width =
+        image.naturalWidth;
+
+      let height =
+        image.naturalHeight;
 
 
       const ratio =
         Math.min(
           1,
-          maxSize / image.width,
-          maxSize / image.height
+          MAX_WIDTH / width,
+          MAX_HEIGHT / height
         );
 
 
-      const width =
+      width =
         Math.round(
-          image.width * ratio
+          width * ratio
         );
 
 
-      const height =
+      height =
         Math.round(
-          image.height * ratio
+          height * ratio
         );
 
 
@@ -950,181 +899,502 @@ function resizeImage(
         height;
 
 
-      canvas
-        .getContext("2d")
-        .drawImage(
-          image,
-          0,
-          0,
-          width,
-          height
-        );
+      const context =
+        canvas.getContext("2d");
+
+
+      context.drawImage(
+        image,
+        0,
+        0,
+        width,
+        height
+      );
+
+
+      let compressed;
+
+
+      try {
+
+        compressed =
+          canvas.toDataURL(
+            "image/jpeg",
+            0.72
+          );
+
+      } catch {
+
+        compressed =
+          dataURL;
+
+      }
 
 
       callback(
-        canvas.toDataURL(
-          "image/jpeg",
-          .72
-        )
+        compressed
+      );
+
+    };
+
+
+  image.onerror =
+    function () {
+
+      callback(
+        dataURL
       );
 
     };
 
 
   image.src =
-    source;
+    dataURL;
 
 }
 
 
-/* SAVE ADD / EDIT */
+/* =========================================
+   画像選択
+========================================= */
 
-addForm.onsubmit =
-  event => {
+if (imageInput) {
 
-    event.preventDefault();
+  imageInput.addEventListener(
+    "change",
+    function () {
 
-
-    const title =
-      titleInput.value.trim();
-
-
-    if (!title) {
-
-      titleInput.focus();
-
-      return;
-
-    }
+      const file =
+        this.files &&
+        this.files[0];
 
 
-    if (editingId) {
+      if (!file) {
+        return;
+      }
 
-      const index =
-        gachas.findIndex(
-          item =>
-            item.id ===
-            editingId
+
+      if (
+        !file.type.startsWith(
+          "image/"
+        )
+      ) {
+
+        alert(
+          "画像ファイルを選んでね"
         );
 
+        this.value = "";
 
-      if (index !== -1) {
+        return;
+
+      }
+
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        function (event) {
+
+          const source =
+            event.target.result;
+
+
+          /*
+            まず選択直後に表示する。
+
+            iPhoneで
+            「選んだのに何も変わらない」
+            状態を防ぐ。
+          */
+
+          currentImage =
+            source;
+
+
+          updateImageUI();
+
+
+          /*
+            その後で軽量化。
+          */
+
+          compressImage(
+            source,
+            function (compressed) {
+
+              currentImage =
+                compressed;
+
+
+              updateImageUI();
+
+            }
+          );
+
+        };
+
+
+      reader.onerror =
+        function () {
+
+          alert(
+            "画像を読み込めませんでした。もう一度選んでね。"
+          );
+
+      };
+
+
+      reader.readAsDataURL(
+        file
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   画像削除
+========================================= */
+
+if (removeImageButton) {
+
+  removeImageButton.addEventListener(
+    "click",
+    function (event) {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+
+      currentImage = "";
+
+
+      if (imageInput) {
+        imageInput.value = "";
+      }
+
+
+      updateImageUI();
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   新規追加
+========================================= */
+
+function openAddScreen() {
+
+  editingId = null;
+
+
+  if (addForm) {
+    addForm.reset();
+  }
+
+
+  currentImage = "";
+
+
+  setAuthor(
+    settings.user || "よしの"
+  );
+
+
+  updateImageUI();
+
+
+  if (formScreenTitle) {
+
+    formScreenTitle.textContent =
+      "ガチャを追加";
+
+  }
+
+
+  if (formScreenSubtitle) {
+
+    formScreenSubtitle.textContent =
+      "ポケットに入れておこう";
+
+  }
+
+
+  if (saveButton) {
+
+    saveButton.innerHTML =
+      `
+        <span class="mini-capsule"></span>
+        ポケットに入れる
+      `;
+
+  }
+
+
+  openScreen(
+    addScreen
+  );
+
+}
+
+
+/* =========================================
+   保存
+========================================= */
+
+if (addForm) {
+
+  addForm.addEventListener(
+    "submit",
+    function (event) {
+
+      event.preventDefault();
+
+
+      const title =
+        titleInput
+          ? titleInput.value.trim()
+          : "";
+
+
+      if (!title) {
+
+        if (titleInput) {
+          titleInput.focus();
+        }
+
+        return;
+
+      }
+
+
+      let savedId;
+
+
+      if (editingId !== null) {
+
+        const index =
+          gachas.findIndex(
+            item =>
+              String(item.id) ===
+              String(editingId)
+          );
+
+
+        if (index === -1) {
+          return;
+        }
+
 
         gachas[index] = {
+
           ...gachas[index],
 
           title,
 
           releaseDate:
-            releaseInput.value,
+            releaseInput
+              ? releaseInput.value
+              : "",
 
           image:
-            currentImage,
+            currentImage || "",
 
           url:
-            urlInput.value.trim(),
+            urlInput
+              ? urlInput.value.trim()
+              : "",
 
           memo:
-            memoInput.value.trim(),
+            memoInput
+              ? memoInput.value.trim()
+              : "",
 
           author:
             currentAuthor
+
         };
+
+
+        savedId =
+          gachas[index].id;
+
+      } else {
+
+        savedId =
+          Date.now();
+
+
+        const newItem = {
+
+          id:
+            savedId,
+
+          title,
+
+          releaseDate:
+            releaseInput
+              ? releaseInput.value
+              : "",
+
+          image:
+            currentImage || "",
+
+          url:
+            urlInput
+              ? urlInput.value.trim()
+              : "",
+
+          memo:
+            memoInput
+              ? memoInput.value.trim()
+              : "",
+
+          author:
+            currentAuthor,
+
+          createdAt:
+            Date.now()
+
+        };
+
+
+        gachas.unshift(
+          newItem
+        );
 
       }
 
-    } else {
 
-      gachas.unshift({
+      const saved =
+        saveData();
 
-        id:
-          Date.now(),
 
-        title,
+      if (!saved) {
+        return;
+      }
 
-        releaseDate:
-          releaseInput.value,
 
-        image:
-          currentImage,
+      render();
 
-        url:
-          urlInput.value.trim(),
 
-        memo:
-          memoInput.value.trim(),
+      /*
+        追加画面を閉じるが、
+        bodyのロックは維持。
+      */
 
-        author:
-          currentAuthor,
+      closeScreen(
+        addScreen,
+        false
+      );
 
-        createdAt:
-          Date.now()
 
-      });
+      /*
+        次の描画フレームで
+        詳細画面を開く。
+
+        Safari対策。
+      */
+
+      requestAnimationFrame(
+        function () {
+
+          requestAnimationFrame(
+            function () {
+
+              showDetail(
+                savedId
+              );
+
+              showToast(
+                editingId !== null
+                  ? "変更を保存したよ"
+                  : "ポケットに入れたよ"
+              );
+
+
+              editingId =
+                null;
+
+            }
+          );
+
+        }
+      );
 
     }
+  );
+
+}
 
 
-    saveData();
-
-    render();
-
-
-    const savedId =
-      editingId ||
-      gachas[0].id;
-
-
-    closeScreen(
-      addScreen
-    );
-
-
-    showDetail(
-      savedId
-    );
-
-  };
-
-
-/* DETAIL */
+/* =========================================
+   詳細画面
+========================================= */
 
 function showDetail(id) {
 
   const item =
     gachas.find(
       gacha =>
-        gacha.id === id
+        String(gacha.id) ===
+        String(id)
     );
 
 
   if (!item) {
+
+    console.error(
+      "詳細データが見つかりません",
+      id
+    );
+
     return;
+
   }
 
 
   detailId =
-    id;
+    item.id;
 
 
-  const imageArea =
+  const detailImageArea =
     document.getElementById(
       "detailImageArea"
     );
 
 
-  imageArea.innerHTML =
-    item.image
+  if (detailImageArea) {
 
-      ? `
-        <img
-          class="detail-image"
-          src="${item.image}"
-          alt=""
-        >
-      `
+    if (item.image) {
 
-      : placeholderHTML(true);
+      detailImageArea.innerHTML =
+        `
+          <img
+            class="detail-image"
+            src="${item.image}"
+            alt="${escapeHTML(
+              item.title
+            )}"
+          >
+        `;
+
+    } else {
+
+      detailImageArea.innerHTML =
+        placeholderHTML(true);
+
+    }
+
+  }
 
 
   const detailAuthor =
@@ -1133,59 +1403,111 @@ function showDetail(id) {
     );
 
 
-  detailAuthor.textContent =
-    `by ${item.author}`;
+  if (detailAuthor) {
+
+    detailAuthor.textContent =
+      `by ${item.author}`;
 
 
-  detailAuthor.className =
-    "detail-author " +
-    (
-      item.author === "よしの"
-        ? "by-yoshino"
-        : "by-takeuchi"
+    detailAuthor.className =
+      "detail-author " +
+      (
+        item.author === "よしの"
+          ? "by-yoshino"
+          : "by-takeuchi"
+      );
+
+  }
+
+
+  const detailTitle =
+    document.getElementById(
+      "detailTitle"
     );
 
 
-  document.getElementById(
-    "detailTitle"
-  ).textContent =
-    item.title;
+  if (detailTitle) {
+
+    detailTitle.textContent =
+      item.title || "";
+
+  }
 
 
-  document.getElementById(
-    "detailDate"
-  ).textContent =
-    formatDate(
+  const detailDate =
+    document.getElementById(
+      "detailDate"
+    );
+
+
+  if (detailDate) {
+
+    detailDate.textContent =
+      formatDate(
+        item.releaseDate
+      );
+
+  }
+
+
+  const detailRelease =
+    document.getElementById(
+      "detailRelease"
+    );
+
+
+  if (detailRelease) {
+
+    detailRelease.textContent =
       item.releaseDate
+        ? "発売予定"
+        : "発売日未定";
+
+  }
+
+
+  const detailMemo =
+    document.getElementById(
+      "detailMemo"
     );
 
 
-  document.getElementById(
-    "detailRelease"
-  ).textContent =
-    item.releaseDate
-      ? "発売予定"
-      : "発売日未定";
+  if (detailMemo) {
+
+    detailMemo.textContent =
+      item.memo ||
+      "メモなし";
+
+  }
 
 
-  document.getElementById(
-    "detailMemo"
-  ).textContent =
-    item.memo ||
-    "メモなし";
+  const detailUrlText =
+    document.getElementById(
+      "detailUrlText"
+    );
 
 
-  document.getElementById(
-    "detailUrlText"
-  ).textContent =
-    item.url ||
-    "URL未登録";
+  if (detailUrlText) {
+
+    detailUrlText.textContent =
+      item.url ||
+      "URL未登録";
+
+  }
 
 
-  document.getElementById(
-    "openUrlButton"
-  ).disabled =
-    !item.url;
+  const openUrlButton =
+    document.getElementById(
+      "openUrlButton"
+    );
+
+
+  if (openUrlButton) {
+
+    openUrlButton.disabled =
+      !item.url;
+
+  }
 
 
   openScreen(
@@ -1195,218 +1517,375 @@ function showDetail(id) {
 }
 
 
-cards.onclick =
-  event => {
+/* =========================================
+   カードタップ
 
-    const card =
-      event.target.closest(
-        ".gacha-card"
-      );
+   clickをカード生成後に毎回
+   付け直すのではなく、
+   親要素で受け取る。
+========================================= */
+
+if (cards) {
+
+  cards.addEventListener(
+    "click",
+    function (event) {
+
+      const card =
+        event.target.closest(
+          ".gacha-card"
+        );
 
 
-    if (!card) {
-      return;
+      if (!card) {
+        return;
+      }
+
+
+      event.preventDefault();
+
+
+      const id =
+        card.dataset.id;
+
+
+      showDetail(id);
+
     }
+  );
 
 
-    showDetail(
-      Number(
+  cards.addEventListener(
+    "keydown",
+    function (event) {
+
+      if (
+        event.key !== "Enter" &&
+        event.key !== " "
+      ) {
+        return;
+      }
+
+
+      const card =
+        event.target.closest(
+          ".gacha-card"
+        );
+
+
+      if (!card) {
+        return;
+      }
+
+
+      event.preventDefault();
+
+
+      showDetail(
         card.dataset.id
-      )
-    );
-
-  };
-
-
-document.getElementById(
-  "openUrlButton"
-).onclick =
-  () => {
-
-    const item =
-      gachas.find(
-        gacha =>
-          gacha.id ===
-          detailId
       );
 
-
-    if (
-      !item ||
-      !item.url
-    ) {
-      return;
     }
+  );
+
+}
 
 
-    window.open(
-      item.url,
-      "_blank",
-      "noopener,noreferrer"
-    );
+/* =========================================
+   URL
+========================================= */
 
-  };
+const openUrlButton =
+  document.getElementById(
+    "openUrlButton"
+  );
 
 
-/* EDIT */
+if (openUrlButton) {
 
-document.getElementById(
-  "editButton"
-).onclick =
-  () => {
+  openUrlButton.addEventListener(
+    "click",
+    function () {
 
-    const item =
-      gachas.find(
-        gacha =>
-          gacha.id ===
-          detailId
+      const item =
+        gachas.find(
+          gacha =>
+            String(gacha.id) ===
+            String(detailId)
+        );
+
+
+      if (!item) {
+        return;
+      }
+
+
+      if (!item.url) {
+
+        showToast(
+          "このガチャにはURLがまだないよ"
+        );
+
+        return;
+
+      }
+
+
+      window.open(
+        item.url,
+        "_blank",
+        "noopener,noreferrer"
       );
 
-
-    if (!item) {
-      return;
     }
+  );
+
+}
 
 
-    closeScreen(
-      detailScreen
-    );
+/* =========================================
+   編集
+========================================= */
+
+const editButton =
+  document.getElementById(
+    "editButton"
+  );
 
 
-    editingId =
-      item.id;
+if (editButton) {
+
+  editButton.addEventListener(
+    "click",
+    function () {
+
+      const item =
+        gachas.find(
+          gacha =>
+            String(gacha.id) ===
+            String(detailId)
+        );
 
 
-    titleInput.value =
-      item.title || "";
+      if (!item) {
+        return;
+      }
 
 
-    releaseInput.value =
-      item.releaseDate || "";
+      editingId =
+        item.id;
 
 
-    urlInput.value =
-      item.url || "";
+      if (titleInput) {
+        titleInput.value =
+          item.title || "";
+      }
 
 
-    memoInput.value =
-      item.memo || "";
+      if (releaseInput) {
+        releaseInput.value =
+          item.releaseDate || "";
+      }
 
 
-    currentImage =
-      item.image || "";
+      if (urlInput) {
+        urlInput.value =
+          item.url || "";
+      }
 
 
-    setAuthor(
-      item.author
-    );
+      if (memoInput) {
+        memoInput.value =
+          item.memo || "";
+      }
 
 
-    updateImageUI();
+      currentImage =
+        item.image || "";
 
 
-    formScreenTitle.textContent =
-      "ガチャを編集";
-
-
-    formScreenSubtitle.textContent =
-      "ポケットの中身を更新";
-
-
-    saveButton.lastChild.textContent =
-      " 変更を保存";
-
-
-    openScreen(
-      addScreen
-    );
-
-  };
-
-
-/* DELETE */
-
-document.getElementById(
-  "deleteButton"
-).onclick =
-  () => {
-
-    const item =
-      gachas.find(
-        gacha =>
-          gacha.id ===
-          detailId
+      setAuthor(
+        item.author ||
+        settings.user
       );
 
 
-    if (!item) {
-      return;
+      updateImageUI();
+
+
+      if (formScreenTitle) {
+
+        formScreenTitle.textContent =
+          "ガチャを編集";
+
+      }
+
+
+      if (formScreenSubtitle) {
+
+        formScreenSubtitle.textContent =
+          "ポケットの中身を更新";
+
+      }
+
+
+      if (saveButton) {
+
+        saveButton.innerHTML =
+          `
+            <span class="mini-capsule"></span>
+            変更を保存
+          `;
+
+      }
+
+
+      closeScreen(
+        detailScreen,
+        false
+      );
+
+
+      requestAnimationFrame(
+        function () {
+
+          openScreen(
+            addScreen
+          );
+
+        }
+      );
+
     }
+  );
+
+}
 
 
-    const ok =
-      confirm(
-        `「${item.title}」を削除する？`
+/* =========================================
+   削除
+========================================= */
+
+const deleteButton =
+  document.getElementById(
+    "deleteButton"
+  );
+
+
+if (deleteButton) {
+
+  deleteButton.addEventListener(
+    "click",
+    function () {
+
+      const item =
+        gachas.find(
+          gacha =>
+            String(gacha.id) ===
+            String(detailId)
+        );
+
+
+      if (!item) {
+        return;
+      }
+
+
+      const ok =
+        confirm(
+          `「${item.title}」を削除する？`
+        );
+
+
+      if (!ok) {
+        return;
+      }
+
+
+      gachas =
+        gachas.filter(
+          gacha =>
+            String(gacha.id) !==
+            String(detailId)
+        );
+
+
+      saveData();
+
+      render();
+
+
+      closeScreen(
+        detailScreen
       );
 
 
-    if (!ok) {
-      return;
+      detailId =
+        null;
+
+
+      showToast(
+        "ガチャを削除したよ"
+      );
+
     }
+  );
+
+}
 
 
-    gachas =
-      gachas.filter(
-        gacha =>
-          gacha.id !==
-          detailId
-      );
-
-
-    saveData();
-
-    render();
-
-    closeScreen(
-      detailScreen
-    );
-
-
-    showToast(
-      "ガチャを削除したよ"
-    );
-
-  };
-
-
-/* SETTINGS */
+/* =========================================
+   設定
+========================================= */
 
 function updateStats() {
 
-  document.getElementById(
-    "totalCount"
-  ).textContent =
-    gachas.length;
+  const totalCount =
+    document.getElementById(
+      "totalCount"
+    );
+
+  const yoshinoCount =
+    document.getElementById(
+      "yoshinoCount"
+    );
+
+  const takeuchiCount =
+    document.getElementById(
+      "takeuchiCount"
+    );
 
 
-  document.getElementById(
-    "yoshinoCount"
-  ).textContent =
-    gachas.filter(
-      item =>
-        item.author ===
-        "よしの"
-    ).length;
+  if (totalCount) {
+
+    totalCount.textContent =
+      gachas.length;
+
+  }
 
 
-  document.getElementById(
-    "takeuchiCount"
-  ).textContent =
-    gachas.filter(
-      item =>
-        item.author ===
-        "たけうち"
-    ).length;
+  if (yoshinoCount) {
+
+    yoshinoCount.textContent =
+      gachas.filter(
+        item =>
+          item.author ===
+          "よしの"
+      ).length;
+
+  }
+
+
+  if (takeuchiCount) {
+
+    takeuchiCount.textContent =
+      gachas.filter(
+        item =>
+          item.author ===
+          "たけうち"
+      ).length;
+
+  }
 
 }
 
@@ -1428,16 +1907,32 @@ function updateSettingsUI() {
     });
 
 
-  document.getElementById(
-    "defaultViewSelect"
-  ).value =
-    settings.view;
+  const defaultViewSelect =
+    document.getElementById(
+      "defaultViewSelect"
+    );
 
 
-  document.getElementById(
-    "defaultSortSelect"
-  ).value =
-    settings.sort;
+  if (defaultViewSelect) {
+
+    defaultViewSelect.value =
+      settings.view;
+
+  }
+
+
+  const defaultSortSelect =
+    document.getElementById(
+      "defaultSortSelect"
+    );
+
+
+  if (defaultSortSelect) {
+
+    defaultSortSelect.value =
+      settings.sort;
+
+  }
 
 
   updateStats();
@@ -1456,17 +1951,175 @@ function openSettings() {
 }
 
 
-document.getElementById(
-  "settingsButton"
-).onclick =
-  openSettings;
+/* =========================================
+   イベント登録
+========================================= */
+
+if (addButton) {
+
+  addButton.addEventListener(
+    "click",
+    openAddScreen
+  );
+
+}
 
 
-document.getElementById(
-  "bottomSettings"
-).onclick =
-  openSettings;
+document
+  .querySelectorAll(
+    ".author-button"
+  )
+  .forEach(button => {
 
+    button.addEventListener(
+      "click",
+      function () {
+
+        setAuthor(
+          this.dataset.author
+        );
+
+      }
+    );
+
+  });
+
+
+if (photoButton) {
+
+  photoButton.addEventListener(
+    "click",
+    function () {
+
+      setViewMode(
+        "photo"
+      );
+
+    }
+  );
+
+}
+
+
+if (listButton) {
+
+  listButton.addEventListener(
+    "click",
+    function () {
+
+      setViewMode(
+        "list"
+      );
+
+    }
+  );
+
+}
+
+
+if (searchInput) {
+
+  searchInput.addEventListener(
+    "input",
+    render
+  );
+
+}
+
+
+if (sortSelect) {
+
+  sortSelect.addEventListener(
+    "change",
+    function () {
+
+      settings.sort =
+        this.value;
+
+      saveSettings();
+
+      render();
+
+    }
+  );
+
+}
+
+
+document
+  .querySelectorAll(
+    ".filter-button"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      function () {
+
+        currentFilter =
+          this.dataset.filter;
+
+
+        document
+          .querySelectorAll(
+            ".filter-button"
+          )
+          .forEach(item => {
+
+            item.classList.toggle(
+              "active",
+              item === button
+            );
+
+          });
+
+
+        render();
+
+      }
+    );
+
+  });
+
+
+/* =========================================
+   設定ボタン
+========================================= */
+
+const settingsButton =
+  document.getElementById(
+    "settingsButton"
+  );
+
+const bottomSettings =
+  document.getElementById(
+    "bottomSettings"
+  );
+
+
+if (settingsButton) {
+
+  settingsButton.addEventListener(
+    "click",
+    openSettings
+  );
+
+}
+
+
+if (bottomSettings) {
+
+  bottomSettings.addEventListener(
+    "click",
+    openSettings
+  );
+
+}
+
+
+/* =========================================
+   設定ユーザー
+========================================= */
 
 document
   .querySelectorAll(
@@ -1474,189 +2127,297 @@ document
   )
   .forEach(button => {
 
-    button.onclick =
-      () => {
+    button.addEventListener(
+      "click",
+      function () {
 
         settings.user =
-          button.dataset.user;
+          this.dataset.user;
+
+        currentAuthor =
+          settings.user;
 
         saveSettings();
 
         updateSettingsUI();
 
-      };
+      }
+    );
 
   });
 
 
-document.getElementById(
-  "defaultViewSelect"
-).onchange =
-  event => {
-
-    settings.view =
-      event.target.value;
-
-    saveSettings();
-
-    setViewMode(
-      settings.view,
-      false
-    );
-
-  };
+const defaultViewSelect =
+  document.getElementById(
+    "defaultViewSelect"
+  );
 
 
-document.getElementById(
-  "defaultSortSelect"
-).onchange =
-  event => {
+if (defaultViewSelect) {
 
-    settings.sort =
-      event.target.value;
+  defaultViewSelect.addEventListener(
+    "change",
+    function () {
 
-    saveSettings();
+      settings.view =
+        this.value;
 
-    sortSelect.value =
-      settings.sort;
+      saveSettings();
 
-    render();
-
-  };
-
-
-document.getElementById(
-  "deleteAllButton"
-).onclick =
-  () => {
-
-    const ok =
-      confirm(
-        "登録しているガチャをすべて削除する？この操作は元に戻せません。"
+      setViewMode(
+        settings.view,
+        false
       );
 
-
-    if (!ok) {
-      return;
     }
+  );
+
+}
 
 
-    gachas = [];
-
-    saveData();
-
-    render();
-
-    updateStats();
-
-    showToast(
-      "登録データをすべて削除したよ"
-    );
-
-  };
+const defaultSortSelect =
+  document.getElementById(
+    "defaultSortSelect"
+  );
 
 
-/* CLOSE BUTTONS */
+if (defaultSortSelect) {
 
-document.getElementById(
-  "closeAddButton"
-).onclick =
-  () =>
-    closeScreen(
-      addScreen
-    );
+  defaultSortSelect.addEventListener(
+    "change",
+    function () {
 
+      settings.sort =
+        this.value;
 
-document.getElementById(
-  "cancelAddButton"
-).onclick =
-  () =>
-    closeScreen(
-      addScreen
-    );
+      saveSettings();
 
 
-document.getElementById(
-  "closeDetailButton"
-).onclick =
-  () =>
-    closeScreen(
-      detailScreen
-    );
+      if (sortSelect) {
+
+        sortSelect.value =
+          settings.sort;
+
+      }
 
 
-document.getElementById(
-  "closeSettingsButton"
-).onclick =
-  () =>
-    closeScreen(
-      settingsScreen
-    );
+      render();
+
+    }
+  );
+
+}
 
 
-/* BOTTOM */
+/* =========================================
+   全削除
+========================================= */
 
-document.getElementById(
-  "homeButton"
-).onclick =
-  () => {
-
-    currentFilter =
-      "all";
+const deleteAllButton =
+  document.getElementById(
+    "deleteAllButton"
+  );
 
 
-    document
-      .querySelectorAll(
-        ".filter-button"
-      )
-      .forEach(button => {
+if (deleteAllButton) {
 
-        button.classList.toggle(
-          "active",
-          button.dataset.filter ===
-            "all"
+  deleteAllButton.addEventListener(
+    "click",
+    function () {
+
+      const ok =
+        confirm(
+          "登録しているガチャをすべて削除する？この操作は元に戻せません。"
         );
 
+
+      if (!ok) {
+        return;
+      }
+
+
+      gachas = [];
+
+
+      saveData();
+
+      render();
+
+      updateStats();
+
+
+      showToast(
+        "登録データをすべて削除したよ"
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   閉じる
+========================================= */
+
+function bindClose(
+  id,
+  screen
+) {
+
+  const button =
+    document.getElementById(id);
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.addEventListener(
+    "click",
+    function () {
+
+      closeScreen(
+        screen
+      );
+
+    }
+  );
+
+}
+
+
+bindClose(
+  "closeAddButton",
+  addScreen
+);
+
+bindClose(
+  "cancelAddButton",
+  addScreen
+);
+
+bindClose(
+  "closeDetailButton",
+  detailScreen
+);
+
+bindClose(
+  "closeSettingsButton",
+  settingsScreen
+);
+
+
+/* =========================================
+   下部ナビ
+========================================= */
+
+const homeButton =
+  document.getElementById(
+    "homeButton"
+  );
+
+
+if (homeButton) {
+
+  homeButton.addEventListener(
+    "click",
+    function () {
+
+      currentFilter =
+        "all";
+
+
+      document
+        .querySelectorAll(
+          ".filter-button"
+        )
+        .forEach(button => {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.filter ===
+              "all"
+          );
+
+        });
+
+
+      render();
+
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
       });
 
+    }
+  );
 
-    render();
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-
-  };
+}
 
 
-document.getElementById(
-  "allGachaButton"
-).onclick =
-  () => {
-
-    currentFilter =
-      "all";
-
-    searchInput.value =
-      "";
-
-    render();
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-
-  };
+const allGachaButton =
+  document.getElementById(
+    "allGachaButton"
+  );
 
 
-/* TOAST */
+if (allGachaButton) {
 
-let toastTimer;
+  allGachaButton.addEventListener(
+    "click",
+    function () {
 
+      currentFilter =
+        "all";
+
+
+      if (searchInput) {
+        searchInput.value = "";
+      }
+
+
+      document
+        .querySelectorAll(
+          ".filter-button"
+        )
+        .forEach(button => {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.filter ===
+              "all"
+          );
+
+        });
+
+
+      render();
+
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   TOAST
+========================================= */
 
 function showToast(message) {
+
+  if (!toast) {
+    return;
+  }
+
 
   clearTimeout(
     toastTimer
@@ -1674,7 +2435,7 @@ function showToast(message) {
 
   toastTimer =
     setTimeout(
-      () => {
+      function () {
 
         toast.classList.remove(
           "show"
@@ -1687,10 +2448,16 @@ function showToast(message) {
 }
 
 
-/* START */
+/* =========================================
+   起動
+========================================= */
 
-sortSelect.value =
-  settings.sort;
+if (sortSelect) {
+
+  sortSelect.value =
+    settings.sort;
+
+}
 
 
 setViewMode(
@@ -1698,5 +2465,7 @@ setViewMode(
   false
 );
 
+
+updateImageUI();
 
 render();
