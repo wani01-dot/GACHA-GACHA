@@ -1,62 +1,65 @@
-/* ========================================
+/* =========================================
    ガチャポケット
    style.css
-======================================== */
+========================================= */
 
 :root {
   --brown: #432a1a;
-  --brown-light: #76583f;
+  --brown2: #735239;
 
-  --cream: #f7ead0;
-  --cream-dark: #e7cda0;
-
+  --cream: #f8e9c9;
+  --cream2: #efd6a5;
   --paper: #fffaf0;
 
-  --red: #d95043;
+  --red: #cf5043;
+  --blue: #4b91a9;
 
-  --blue: #9bdcf2;
-  --blue-dark: #4b9cba;
+  --yoshino: #bfe9f6;
+  --takeuchi: #f8cbd7;
 
-  --pink: #f5b0c1;
-  --pink-dark: #c96882;
+  --border: #d2b383;
 
-  --border: #d3b789;
-
-  --shadow:
-    0 3px 10px
-    rgba(73, 44, 24, 0.12);
+  --nav-height: 74px;
 }
 
 
-/* ========================================
-   BASE
-======================================== */
+/* =========================================
+   RESET
+========================================= */
 
 * {
   box-sizing: border-box;
-
-  -webkit-tap-highlight-color:
-    transparent;
+  -webkit-tap-highlight-color: transparent;
 }
-
 
 html {
-  background:
-    #b87942;
+  width: 100%;
+  max-width: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  overflow-x: hidden;
+
+  background: #f6e3bd;
+
+  overscroll-behavior-x: none;
 }
 
-
 body {
+  width: 100%;
+  max-width: 100%;
+
+  min-height: 100dvh;
+
   margin: 0;
+  padding: 0;
 
-  min-height:
-    100vh;
+  overflow-x: hidden;
 
-  color:
-    var(--brown);
+  color: var(--brown);
 
-  background:
-    #b87942;
+  background: #f6e3bd;
 
   font-family:
     -apple-system,
@@ -64,8 +67,11 @@ body {
     "Hiragino Sans",
     "Yu Gothic",
     sans-serif;
-}
 
+  overscroll-behavior-x: none;
+
+  touch-action: pan-y;
+}
 
 button,
 input,
@@ -74,1675 +80,1596 @@ select {
   font: inherit;
 }
 
-
 button {
   color: inherit;
-
-  cursor: pointer;
 }
-
-
-input,
-textarea {
-  font-size:
-    16px;
-}
-
-
-/* iPhone入力時の
-   勝手なズーム対策 */
 
 input,
 textarea,
 select {
-  min-height:
-    44px;
+  font-size: 16px;
 }
 
 
-/* ========================================
+/* =========================================
    APP
-======================================== */
+========================================= */
 
 .app {
+  position: relative;
+
   width: 100%;
+  max-width: 520px;
 
-  max-width:
-    520px;
+  min-height: 100dvh;
 
-  min-height:
-    100dvh;
+  margin: 0 auto;
 
-  margin:
-    0 auto;
-
-  position:
-    relative;
-
-  overflow:
-    hidden;
+  overflow-x: clip;
 
   background:
     linear-gradient(
       180deg,
-      #faf0da 0%,
-      #f5e5c6 100%
+      #fbefd6 0%,
+      #f6e5c3 100%
     );
-
-  box-shadow:
-    0 0 30px
-    rgba(55, 32, 16, 0.3);
 }
 
 
-/* ========================================
-   駄菓子屋のひさし
-======================================== */
+/* =========================================
+   AWNING
+========================================= */
 
 .awning {
-  height:
-    18px;
+  width: 100%;
+  height: 18px;
 
-  flex:
-    0 0 auto;
+  flex: 0 0 18px;
 
   background:
     repeating-linear-gradient(
       90deg,
+      var(--red) 0 29px,
+      var(--red) 29px 30px,
 
-      #c94d40 0,
-      #c94d40 28px,
+      #fff0cf 30px 59px,
+      #fff0cf 59px 60px,
 
-      #f9e7c3 28px,
-      #f9e7c3 56px,
+      var(--blue) 60px 89px,
+      var(--blue) 89px 90px,
 
-      #4388a3 56px,
-      #4388a3 84px,
-
-      #f9e7c3 84px,
-      #f9e7c3 112px
+      #fff0cf 90px 119px,
+      #fff0cf 119px 120px
     );
 
-  border-bottom:
-    2px solid
-    #855331;
+  border-bottom: 2px solid #805237;
 }
 
 
-/* ========================================
-   HEADER
-======================================== */
+/* =========================================
+   CSS CAPSULE
+========================================= */
 
-.header {
-  position:
-    sticky;
+.capsule-mark {
+  position: relative;
 
-  top: 0;
+  width: 54px;
+  height: 54px;
 
-  z-index:
-    20;
+  flex: 0 0 auto;
+
+  overflow: hidden;
+
+  border: 3px solid #71462d;
+  border-radius: 50%;
 
   background:
-    #f3d8a7;
+    linear-gradient(
+      135deg,
+      var(--red) 0 46%,
+      #fff6df 46% 54%,
+      var(--blue) 54% 100%
+    );
 
-  border-bottom:
-    2px solid
-    #805131;
+  box-shadow:
+    inset 0 0 0 4px #fff4da;
+}
+
+.capsule-mark::before {
+  content: "";
+
+  position: absolute;
+
+  top: 10px;
+  left: 12px;
+
+  width: 13px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: rgba(255,255,255,.75);
+
+  transform: rotate(-25deg);
+}
+
+.capsule-mark span {
+  position: absolute;
+
+  top: 50%;
+  left: 4px;
+  right: 4px;
+
+  height: 4px;
+
+  margin-top: -2px;
+
+  background: #70462e;
+
+  transform: rotate(-45deg);
+
+  transform-origin: center;
+}
+
+.capsule-mark.small {
+  width: 42px;
+  height: 42px;
+
+  border-width: 2px;
+
+  box-shadow:
+    inset 0 0 0 3px #fff4da;
+}
+
+.form-capsule {
+  width: 45px;
+  height: 45px;
+}
+
+.placeholder-capsule {
+  width: 65px;
+  height: 65px;
+
+  margin-bottom: 10px;
+}
+
+.empty-capsule {
+  margin: 0 auto 12px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.header {
+  position: sticky;
+
+  top: 0;
+  z-index: 20;
+
+  width: 100%;
+
+  background: #f3d7a3;
+
+  border-bottom: 2px solid #805237;
 
   box-shadow:
     0 3px 10px
-    rgba(75, 45, 25, 0.1);
+    rgba(78,48,27,.1);
 }
-
 
 .header-main {
-  min-height:
-    62px;
+  min-height: 67px;
 
-  display:
-    flex;
+  display: flex;
 
-  align-items:
-    center;
+  align-items: center;
+  justify-content: space-between;
 
-  justify-content:
-    space-between;
+  gap: 10px;
 
-  gap:
-    10px;
-
-  padding:
-    8px 14px;
+  padding: 8px 14px;
 }
-
 
 .logo-area {
   min-width: 0;
 
-  display:
-    flex;
+  display: flex;
 
-  align-items:
-    center;
+  align-items: center;
 
-  gap:
-    9px;
+  gap: 10px;
 }
-
-
-.logo-animal {
-  width:
-    39px;
-
-  height:
-    39px;
-
-  flex:
-    0 0 39px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  border:
-    2px solid
-    #7b4d2e;
-
-  border-radius:
-    50%;
-
-  background:
-    #fff7e7;
-
-  font-size:
-    23px;
-}
-
 
 .logo {
-  font-size:
-    24px;
+  white-space: nowrap;
 
-  font-weight:
-    950;
+  font-size: 23px;
+  font-weight: 950;
 
-  line-height:
-    1;
+  line-height: 1;
 
-  letter-spacing:
-    -1px;
+  letter-spacing: -1px;
 }
-
 
 .logo-sub {
-  margin-top:
-    4px;
+  margin-top: 5px;
 
-  color:
-    #87654a;
+  color: #846148;
 
-  font-size:
-    8px;
+  font-size: 8px;
+  font-weight: 900;
 
-  font-weight:
-    800;
-
-  letter-spacing:
-    2px;
+  letter-spacing: 3px;
 }
 
+
+/* =========================================
+   MENU BUTTON
+========================================= */
 
 .icon-button {
-  width:
-    42px;
+  width: 43px;
+  height: 43px;
 
-  height:
-    42px;
+  flex: 0 0 43px;
 
-  flex:
-    0 0 42px;
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
 
   border: 0;
+  border-radius: 50%;
 
-  border-radius:
-    50%;
+  background: rgba(255,255,255,.5);
+}
 
-  background:
-    rgba(255, 255, 255, 0.55);
+.menu-lines,
+.menu-lines::before,
+.menu-lines::after {
+  width: 20px;
+  height: 2px;
 
-  font-size:
-    21px;
+  display: block;
+
+  border-radius: 3px;
+
+  background: var(--brown);
+}
+
+.menu-lines {
+  position: relative;
+}
+
+.menu-lines::before,
+.menu-lines::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+}
+
+.menu-lines::before {
+  top: -6px;
+}
+
+.menu-lines::after {
+  top: 6px;
 }
 
 
-/* ========================================
-   写真 / リスト
-======================================== */
+/* =========================================
+   VIEW SWITCH
+========================================= */
 
 .view-switch {
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
-    1fr 1fr;
+    minmax(0,1fr)
+    minmax(0,1fr);
 
-  gap:
-    4px;
+  gap: 4px;
 
-  margin:
-    0 12px 10px;
+  margin: 0 12px 11px;
 
-  padding:
-    4px;
+  padding: 4px;
 
-  border-radius:
-    14px;
+  border-radius: 14px;
 
-  background:
-    #e1c496;
+  background: #dfc18e;
 }
-
 
 .view-button {
+  min-width: 0;
+  min-height: 48px;
+
   border: 0;
+  border-radius: 11px;
 
-  padding:
-    10px 8px;
+  background: transparent;
 
-  border-radius:
-    10px;
+  color: #755941;
 
-  background:
-    transparent;
-
-  color:
-    #7d634b;
-
-  font-size:
-    13px;
-
-  font-weight:
-    900;
+  font-size: 13px;
+  font-weight: 900;
 }
-
 
 .view-button.active {
-  background:
-    #fff9ec;
+  background: #fff9ed;
 
-  color:
-    #257493;
+  color: #27748f;
 
   box-shadow:
-    0 2px 5px
-    rgba(77, 48, 27, 0.15);
+    0 3px 6px
+    rgba(82,52,31,.14);
 }
 
 
-/* ========================================
+/* grid/list tiny icons */
+
+.grid-icon {
+  width: 12px;
+  height: 12px;
+
+  display: inline-block;
+
+  margin-right: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      currentColor 0 3px,
+      transparent 3px 5px,
+      currentColor 5px 8px,
+      transparent 8px 10px,
+      currentColor 10px
+    );
+
+  opacity: .7;
+}
+
+.list-icon {
+  position: relative;
+
+  width: 14px;
+  height: 10px;
+
+  display: inline-block;
+
+  margin-right: 5px;
+
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+}
+
+.list-icon::after {
+  content: "";
+
+  position: absolute;
+
+  top: 3px;
+  left: 0;
+
+  width: 14px;
+
+  border-top: 2px solid currentColor;
+}
+
+
+/* =========================================
    SEARCH
-======================================== */
+========================================= */
 
 .search-row {
-  display:
-    grid;
+  width: 100%;
+
+  display: grid;
 
   grid-template-columns:
-    minmax(0, 1fr) 46px;
+    minmax(0,1fr) 48px;
 
-  gap:
-    8px;
+  gap: 9px;
 
-  padding:
-    11px 11px 8px;
+  padding: 12px 11px 8px;
 }
 
+.search-box {
+  min-width: 0;
 
-.search-input {
-  width:
-    100%;
+  display: flex;
 
-  min-width:
-    0;
+  align-items: center;
 
-  border:
-    1px solid
-    var(--border);
+  gap: 9px;
 
-  border-radius:
-    13px;
+  padding: 0 13px;
 
-  padding:
-    10px 13px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
 
-  outline:
-    none;
-
-  background:
-    #fffdf7;
+  background: #fffdf8;
 }
 
+.search-box input {
+  width: 100%;
+  min-width: 0;
 
-.search-input:focus {
-  border-color:
-    #8d6949;
+  height: 46px;
 
-  box-shadow:
-    0 0 0 3px
-    rgba(141, 105, 73, 0.12);
-}
-
-
-.add-button {
-  width:
-    46px;
-
-  height:
-    46px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
+  padding: 0;
 
   border: 0;
+  outline: 0;
 
-  border-radius:
-    50%;
+  background: transparent;
 
-  background:
-    var(--red);
+  color: var(--brown);
+}
 
-  color:
-    white;
+.search-symbol {
+  position: relative;
+
+  width: 17px;
+  height: 17px;
+
+  flex: 0 0 17px;
+
+  border: 2px solid #665647;
+  border-radius: 50%;
+}
+
+.search-symbol::after {
+  content: "";
+
+  position: absolute;
+
+  right: -6px;
+  bottom: -4px;
+
+  width: 8px;
+
+  border-top: 2px solid #665647;
+
+  transform: rotate(45deg);
+}
+
+.add-button {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: #dc5147;
+
+  color: #fff;
 
   box-shadow:
-    0 3px 0
-    #a83931;
+    0 4px 0 #a53b34;
 
-  font-size:
-    28px;
+  font-size: 30px;
+
+  line-height: 1;
 }
 
 
-.add-button:active {
-  transform:
-    translateY(2px);
-
-  box-shadow:
-    0 1px 0
-    #a83931;
-}
-
-
-/* ========================================
+/* =========================================
    FILTER
-======================================== */
+========================================= */
 
 .filter-row {
-  display:
-    flex;
+  width: 100%;
 
-  align-items:
-    center;
+  display: flex;
 
-  gap:
-    6px;
+  align-items: center;
 
-  padding:
-    0 11px 11px;
+  gap: 7px;
 
-  overflow-x:
-    auto;
+  padding: 0 11px 11px;
 
-  scrollbar-width:
-    none;
+  overflow-x: auto;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
 }
-
 
 .filter-row::-webkit-scrollbar {
-  display:
-    none;
+  display: none;
 }
-
 
 .filter-button {
-  min-height:
-    34px;
+  min-height: 35px;
 
-  flex:
-    0 0 auto;
+  flex: 0 0 auto;
 
-  border:
-    1px solid
-    #c8aa7b;
+  padding: 6px 12px;
 
-  border-radius:
-    20px;
+  border: 1px solid #c5a475;
+  border-radius: 20px;
 
-  padding:
-    6px 11px;
+  background: #fff8e8;
 
-  background:
-    #fff8e8;
-
-  font-size:
-    11px;
-
-  font-weight:
-    900;
+  font-size: 11px;
+  font-weight: 900;
 }
 
+.filter-button.yoshino {
+  background: var(--yoshino);
+}
+
+.filter-button.takeuchi {
+  background: var(--takeuchi);
+}
 
 .filter-button.active {
-  border-color:
-    #4c3221;
+  border-color: var(--brown);
 
-  background:
-    #4c3221;
+  background: var(--brown);
 
-  color:
-    white;
+  color: #fff;
 }
-
-
-.yoshino-filter {
-  background:
-    #d9f3fc;
-}
-
-
-.takeuchi-filter {
-  background:
-    #ffe0e7;
-}
-
 
 .sort-select {
-  min-height:
-    34px;
+  min-height: 35px;
 
-  flex:
-    0 0 auto;
+  flex: 0 0 auto;
 
-  margin-left:
-    auto;
+  margin-left: auto;
 
-  border:
-    1px solid
-    #c8aa7b;
+  padding: 5px 9px;
 
-  border-radius:
-    20px;
+  border: 1px solid #c5a475;
+  border-radius: 20px;
 
-  padding:
-    5px 9px;
+  background: #fff8e8;
 
-  background:
-    #fff8e8;
+  color: #604833;
 
-  color:
-    #604834;
-
-  font-size:
-    11px;
-
-  font-weight:
-    800;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 
-/* ========================================
+/* =========================================
    CONTENT
-======================================== */
+========================================= */
 
 .content {
+  width: 100%;
+
   padding:
     0 10px
     calc(
-      100px +
-      env(safe-area-inset-bottom)
+      var(--nav-height) +
+      env(safe-area-inset-bottom) +
+      25px
     );
 }
 
 
-/* ========================================
-   PHOTO GRID
-======================================== */
+/* =========================================
+   PHOTO CARDS
+========================================= */
 
 .cards {
-  display:
-    grid;
+  width: 100%;
+
+  display: grid;
 
   grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
+    repeat(2, minmax(0,1fr));
 
-  gap:
-    9px;
+  gap: 9px;
 }
-
 
 .gacha-card {
-  min-width:
-    0;
+  position: relative;
 
-  position:
-    relative;
+  min-width: 0;
 
-  overflow:
-    hidden;
+  overflow: hidden;
 
-  border:
-    1px solid
-    var(--border);
+  border: 1px solid var(--border);
+  border-radius: 14px;
 
-  border-radius:
-    14px;
-
-  background:
-    var(--paper);
+  background: var(--paper);
 
   box-shadow:
-    var(--shadow);
+    0 3px 8px
+    rgba(80,51,30,.11);
 }
-
-
-.gacha-card:active {
-  transform:
-    scale(0.985);
-}
-
 
 .gacha-image {
-  display:
-    block;
+  width: 100%;
 
-  width:
-    100%;
+  display: block;
 
-  aspect-ratio:
-    1.38;
+  aspect-ratio: 1.38;
 
-  object-fit:
-    cover;
-
-  background:
-    #ead6ae;
+  object-fit: cover;
 }
 
 
-/* ========================================
-   NO IMAGE
-======================================== */
+/* =========================================
+   IMAGE PLACEHOLDER
+========================================= */
 
 .no-image {
-  width:
-    100%;
+  width: 100%;
 
-  aspect-ratio:
-    1.38;
+  aspect-ratio: 1.38;
 
-  display:
-    flex;
+  display: flex;
 
-  align-items:
-    center;
+  align-items: center;
+  justify-content: center;
 
-  justify-content:
-    center;
-
-  padding:
-    8px;
-
-  text-align:
-    center;
+  padding: 10px;
 
   background:
     repeating-linear-gradient(
       45deg,
-
-      #f7e8ca 0,
-      #f7e8ca 10px,
-
-      #f0dbb8 10px,
-      #f0dbb8 20px
+      #f8e9ca 0 11px,
+      #f1dcb7 11px 22px
     );
 
-  color:
-    #60432d;
-
-  font-size:
-    11px;
-
-  font-weight:
-    900;
+  text-align: center;
 }
 
+.card-placeholder-capsule {
+  width: 47px;
+  height: 47px;
 
-.no-image-animal {
-  display:
-    block;
+  margin: 0 auto 8px;
 
-  margin-bottom:
-    3px;
-
-  font-size:
-    38px;
+  border-width: 2px;
 }
-
 
 .no-image-board {
-  display:
-    inline-block;
+  display: inline-block;
 
-  padding:
-    4px 8px;
+  padding: 4px 7px;
 
-  border:
-    2px solid
-    #765036;
+  border: 2px solid #71482f;
+  border-radius: 6px;
 
-  border-radius:
-    5px;
+  background: #fff0ce;
 
-  background:
-    #fff1cf;
+  font-size: 10px;
+  font-weight: 950;
 }
 
 
-/* ========================================
+/* =========================================
    BY BADGE
-======================================== */
+========================================= */
 
 .by-badge {
-  position:
-    absolute;
+  position: absolute;
 
-  top:
-    7px;
+  top: 7px;
+  right: 7px;
 
-  right:
-    7px;
+  padding: 4px 8px;
 
-  padding:
-    4px 8px;
+  border: 1px solid rgba(255,255,255,.85);
+  border-radius: 20px;
 
-  border:
-    1px solid
-    rgba(255,255,255,0.85);
-
-  border-radius:
-    20px;
+  font-size: 9px;
+  font-weight: 950;
 
   box-shadow:
     0 1px 4px
-    rgba(0,0,0,0.13);
-
-  font-size:
-    9px;
-
-  font-weight:
-    950;
+    rgba(0,0,0,.12);
 }
-
 
 .by-yoshino {
-  background:
-    var(--blue);
+  background: #91dcef;
 }
-
 
 .by-takeuchi {
-  background:
-    var(--pink);
+  background: #f5abc0;
 }
 
 
-/* ========================================
-   CARD BODY
-======================================== */
+/* =========================================
+   CARD TEXT
+========================================= */
 
 .card-body {
-  padding:
-    9px;
-}
+  min-width: 0;
 
+  padding: 9px;
+}
 
 .card-title {
-  font-size:
-    14px;
+  overflow-wrap: anywhere;
 
-  font-weight:
-    950;
+  font-size: 14px;
+  font-weight: 950;
 
-  line-height:
-    1.35;
+  line-height: 1.35;
 }
-
 
 .card-date {
-  margin-top:
-    5px;
+  margin-top: 5px;
 
-  font-size:
-    11px;
-
-  font-weight:
-    700;
+  font-size: 11px;
+  font-weight: 800;
 }
-
 
 .card-memo {
-  margin-top:
-    5px;
+  margin-top: 5px;
 
-  overflow:
-    hidden;
+  overflow: hidden;
 
-  color:
-    #745f4d;
+  color: #745f4d;
 
-  font-size:
-    11px;
+  font-size: 11px;
 
-  line-height:
-    1.4;
+  line-height: 1.4;
 
-  display:
-    -webkit-box;
+  display: -webkit-box;
 
-  -webkit-line-clamp:
-    2;
-
-  -webkit-box-orient:
-    vertical;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 
-/* ========================================
+/* =========================================
    LIST MODE
-======================================== */
+========================================= */
 
 .cards.list-mode {
-  display:
-    block;
+  display: block;
 }
 
+.list-mode .gacha-card {
+  width: 100%;
 
-.list-mode
-.gacha-card {
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
     105px minmax(0,1fr);
 
-  min-height:
-    112px;
+  min-height: 112px;
 
-  margin-bottom:
-    9px;
+  margin-bottom: 9px;
+}
+
+.list-mode .gacha-image,
+.list-mode .no-image {
+  width: 105px;
+  height: 100%;
+
+  min-height: 112px;
+
+  aspect-ratio: auto;
+}
+
+.list-mode .card-title {
+  padding-right: 58px;
+
+  font-size: 15px;
 }
 
 
-.list-mode
-.gacha-image,
-
-.list-mode
-.no-image {
-  width:
-    105px;
-
-  height:
-    100%;
-
-  min-height:
-    112px;
-
-  aspect-ratio:
-    auto;
-}
-
-
-.list-mode
-.card-title {
-  padding-right:
-    58px;
-
-  font-size:
-    15px;
-}
-
-
-/* ========================================
+/* =========================================
    EMPTY
-======================================== */
+========================================= */
 
 .empty {
-  padding:
-    60px 20px;
+  padding: 60px 20px;
 
-  text-align:
-    center;
+  text-align: center;
 
-  color:
-    #826a55;
+  color: #826a55;
 }
-
-
-.empty-animal {
-  font-size:
-    48px;
-}
-
 
 .empty strong {
-  display:
-    block;
+  display: block;
 
-  margin-top:
-    8px;
+  font-size: 18px;
+}
 
-  font-size:
-    18px;
+.empty p {
+  font-size: 12px;
+
+  line-height: 1.7;
 }
 
 
-/* ========================================
+/* =========================================
    BOTTOM NAV
-======================================== */
+========================================= */
 
 .bottom-nav {
-  position:
-    fixed;
+  position: fixed;
 
-  z-index:
-    30;
+  z-index: 30;
 
-  bottom:
-    0;
+  left: 50%;
+  bottom: 0;
 
-  left:
-    50%;
-
-  transform:
-    translateX(-50%);
-
-  width:
-    min(520px, 100%);
+  width: min(520px,100%);
 
   height:
     calc(
-      72px +
+      var(--nav-height) +
       env(safe-area-inset-bottom)
     );
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
 
   padding-bottom:
     env(safe-area-inset-bottom);
 
-  display:
-    grid;
+  transform: translateX(-50%);
 
-  grid-template-columns:
-    repeat(3, 1fr);
+  border-top: 1px solid #cdb58c;
 
-  border-top:
-    1px solid
-    #cdb58c;
-
-  background:
-    #fff9e9;
+  background: #fff9e9;
 
   box-shadow:
     0 -3px 12px
-    rgba(69, 43, 24, 0.08);
+    rgba(69,43,24,.08);
 }
-
 
 .nav-button {
-  border:
-    0;
+  min-width: 0;
 
-  background:
-    transparent;
+  border: 0;
 
-  color:
-    #735b47;
+  background: transparent;
 
-  font-size:
-    10px;
+  color: #735b47;
 
-  font-weight:
-    850;
+  font-size: 10px;
+  font-weight: 850;
 }
 
+.nav-button b {
+  display: block;
 
-.nav-button span {
-  display:
-    block;
-
-  margin-bottom:
-    3px;
-
-  font-size:
-    21px;
+  margin-top: 5px;
 }
-
 
 .nav-button.active {
-  color:
-    #c4483e;
+  color: #c4483e;
 }
 
 
-/* ========================================
-   ADD SCREEN OVERLAY
-======================================== */
+/* simple bottom icons */
+
+.nav-home-icon,
+.nav-people-icon,
+.nav-setting-icon {
+  position: relative;
+
+  width: 22px;
+  height: 20px;
+
+  display: block;
+
+  margin: 0 auto;
+}
+
+.nav-home-icon::before {
+  content: "";
+
+  position: absolute;
+
+  left: 3px;
+  bottom: 0;
+
+  width: 16px;
+  height: 13px;
+
+  border: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+.nav-home-icon::after {
+  content: "";
+
+  position: absolute;
+
+  top: 1px;
+  left: 4px;
+
+  width: 13px;
+  height: 13px;
+
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+
+  transform: rotate(45deg);
+}
+
+.nav-people-icon::before,
+.nav-people-icon::after {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+
+  width: 9px;
+  height: 9px;
+
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.nav-people-icon::before {
+  left: 1px;
+}
+
+.nav-people-icon::after {
+  right: 1px;
+}
+
+.nav-people-icon {
+  border-bottom:
+    6px solid currentColor;
+
+  border-radius:
+    0 0 11px 11px;
+}
+
+.nav-setting-icon {
+  border:
+    3px dotted currentColor;
+
+  border-radius: 50%;
+}
+
+.nav-setting-icon::after {
+  content: "";
+
+  position: absolute;
+
+  top: 4px;
+  left: 4px;
+
+  width: 8px;
+  height: 8px;
+
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+
+/* =====================================================
+   ADD SCREEN
+   iPhone Safari横ズレ対策の本体
+===================================================== */
 
 .screen-overlay {
-  position:
-    fixed;
+  position: fixed;
 
-  z-index:
-    100;
+  z-index: 100;
 
-  inset:
-    0;
+  inset: 0;
 
-  display:
-    none;
+  width: 100%;
+  height: 100dvh;
 
-  overflow-y:
-    auto;
+  display: none;
 
-  background:
-    rgba(
-      49,
-      31,
-      20,
-      0.65
-    );
+  margin: 0;
+  padding: 0;
 
-  overscroll-behavior:
-    contain;
+  overflow: hidden;
+
+  background: #f7e7c6;
+
+  overscroll-behavior: none;
+
+  touch-action: none;
 }
-
 
 .screen-overlay.open {
-  display:
-    block;
+  display: block;
 }
 
 
-/* ========================================
-   ADD FORM SCREEN
-======================================== */
+/*
+  ここだけをスクロールさせる。
+  bodyやホームは動かさない。
+*/
 
 .form-screen {
-  width:
-    100%;
+  position: absolute;
 
-  max-width:
-    520px;
+  inset: 0;
 
-  min-height:
-    100dvh;
+  width: 100%;
+  max-width: 520px;
 
-  margin:
-    0 auto;
+  height: 100%;
+
+  margin: 0 auto;
+
+  left: 0;
+  right: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  -webkit-overflow-scrolling: touch;
+
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+
+  touch-action: pan-y;
 
   background:
     linear-gradient(
       180deg,
-      #fbf2df,
-      #f5e5c7
+      #fbf1dd,
+      #f5e3bf
     );
-
-  box-shadow:
-    0 0 30px
-    rgba(40, 24, 14, 0.35);
 }
 
 
-/* ========================================
+/* =========================================
    FORM HEADER
-======================================== */
+========================================= */
 
 .form-header {
-  min-height:
-    78px;
+  position: sticky;
 
-  display:
-    grid;
+  top: 0;
+  z-index: 4;
+
+  width: 100%;
+
+  min-height: 79px;
+
+  display: grid;
 
   grid-template-columns:
-    44px 1fr 44px;
+    44px minmax(0,1fr) 45px;
 
-  align-items:
-    center;
+  align-items: center;
 
-  gap:
-    8px;
+  gap: 8px;
 
   padding:
     10px 13px;
 
   border-bottom:
-    1px solid
-    #d3b98d;
+    1px solid #d3b98d;
 
   background:
-    #f6e4c2;
+    rgba(246,228,194,.97);
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
 }
 
+.form-header-title {
+  min-width: 0;
+}
 
 .form-header h1 {
-  margin:
-    0;
+  margin: 0;
 
-  text-align:
-    center;
+  text-align: center;
 
-  font-size:
-    19px;
-
-  font-weight:
-    950;
+  font-size: 19px;
+  font-weight: 950;
 }
-
 
 .form-header p {
-  margin:
-    4px 0 0;
+  margin: 4px 0 0;
 
-  text-align:
-    center;
+  text-align: center;
 
-  color:
-    #8b6c52;
+  color: #896b51;
 
-  font-size:
-    10px;
+  font-size: 10px;
 }
-
 
 .back-button {
-  width:
-    40px;
+  width: 40px;
+  height: 40px;
 
-  height:
-    40px;
+  display: flex;
 
-  border:
-    0;
+  align-items: center;
+  justify-content: center;
 
-  border-radius:
-    50%;
+  border: 0;
+  border-radius: 50%;
 
-  background:
-    #fff9ed;
+  background: #fff9ed;
 
-  color:
-    #563a27;
+  color: #563a27;
 
-  font-size:
-    32px;
+  font-size: 30px;
 
-  line-height:
-    1;
+  line-height: 1;
 }
 
 
-.header-hamster {
-  width:
-    42px;
-
-  height:
-    42px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  border:
-    2px solid
-    #815332;
-
-  border-radius:
-    50%;
-
-  background:
-    #fff8e8;
-
-  font-size:
-    24px;
-}
-
-
-/* ========================================
+/* =========================================
    FORM
-======================================== */
+========================================= */
 
 .gacha-form {
+  width: 100%;
+
   padding:
     18px 14px
     calc(
-      35px +
+      40px +
       env(safe-area-inset-bottom)
     );
 }
 
-
 .form-field {
-  margin-bottom:
-    20px;
+  width: 100%;
+
+  margin-bottom: 21px;
 }
 
+.field-title {
+  width: 100%;
 
-.form-field > label {
-  display:
-    flex;
+  display: flex;
 
-  align-items:
-    center;
+  align-items: center;
 
-  gap:
-    7px;
+  gap: 7px;
 
-  margin-bottom:
-    8px;
+  margin-bottom: 8px;
 
-  font-size:
-    14px;
-
-  font-weight:
-    950;
+  font-size: 14px;
+  font-weight: 950;
 }
-
 
 .number {
-  width:
-    25px;
+  width: 25px;
+  height: 25px;
 
-  height:
-    25px;
+  flex: 0 0 25px;
 
-  display:
-    inline-flex;
+  display: inline-flex;
 
-  align-items:
-    center;
+  align-items: center;
+  justify-content: center;
 
-  justify-content:
-    center;
+  border-radius: 50%;
 
-  flex:
-    0 0 25px;
+  background: var(--red);
 
-  border-radius:
-    50%;
+  color: #fff;
 
-  background:
-    var(--red);
-
-  color:
-    white;
-
-  font-size:
-    12px;
+  font-size: 12px;
 }
-
 
 .form-field input,
-
 .form-field textarea {
-  width:
-    100%;
+  display: block;
 
-  border:
-    1px solid
-    #cfb487;
+  width: 100%;
+  max-width: 100%;
 
-  border-radius:
-    12px;
+  margin: 0;
 
-  padding:
-    12px;
+  border: 1px solid #cfb487;
+  border-radius: 12px;
 
-  outline:
-    none;
+  outline: none;
 
-  background:
-    #fffdf8;
+  background: #fffdf8;
 
-  color:
-    var(--brown);
+  color: var(--brown);
 }
 
+.form-field input {
+  height: 49px;
 
-.form-field textarea {
-  resize:
-    vertical;
-
-  min-height:
-    105px;
+  padding: 0 12px;
 }
 
+.form-field textarea {
+  min-height: 110px;
+
+  padding: 12px;
+
+  resize: vertical;
+}
 
 .form-field input:focus,
-
 .form-field textarea:focus {
-  border-color:
-    #8e6747;
+  border-color: #896144;
 
   box-shadow:
     0 0 0 3px
-    rgba(142,103,71,0.12);
+    rgba(137,97,68,.11);
 }
 
 
-/* ========================================
-   AUTHOR
-======================================== */
+/* =========================================
+   AUTHORS
+========================================= */
 
 .author-buttons {
-  display:
-    grid;
+  width: 100%;
+
+  display: grid;
 
   grid-template-columns:
-    1fr 1fr;
+    repeat(2,minmax(0,1fr));
 
-  gap:
-    9px;
+  gap: 9px;
 }
-
 
 .author-button {
-  min-height:
-    47px;
+  min-width: 0;
+  min-height: 49px;
 
-  border:
-    2px solid
-    transparent;
+  display: flex;
 
-  border-radius:
-    13px;
+  align-items: center;
+  justify-content: center;
 
-  font-weight:
-    950;
+  gap: 7px;
+
+  border: 2px solid transparent;
+  border-radius: 13px;
+
+  font-weight: 950;
 }
-
 
 .author-button.yoshino {
-  background:
-    #c8edf9;
+  background: var(--yoshino);
 }
-
 
 .author-button.takeuchi {
-  background:
-    #ffd5df;
+  background: var(--takeuchi);
 }
-
 
 .author-button.selected {
-  border-color:
-    #513520;
+  border-color: #513520;
 
   box-shadow:
-    inset 0 0 0 2px
-    #fff;
+    inset 0 0 0 2px #fff;
+}
+
+.author-dot {
+  width: 11px;
+  height: 11px;
+
+  border: 2px solid currentColor;
+  border-radius: 50%;
+
+  background: #fff;
 }
 
 
-/* ========================================
+/* =========================================
    IMAGE UPLOAD
-======================================== */
+========================================= */
 
 .image-upload {
-  padding:
-    12px;
+  width: 100%;
 
-  border:
-    2px dashed
-    #c5a475;
+  overflow: hidden;
 
-  border-radius:
-    15px;
+  padding: 12px;
 
-  background:
-    #fff9eb;
+  border: 2px dashed #c5a475;
+  border-radius: 15px;
 
-  text-align:
-    center;
+  background: #fff9eb;
+
+  text-align: center;
 }
-
 
 .image-placeholder {
-  min-height:
-    160px;
+  width: 100%;
 
-  display:
-    flex;
+  min-height: 180px;
 
-  flex-direction:
-    column;
+  display: flex;
 
-  align-items:
-    center;
+  flex-direction: column;
 
-  justify-content:
-    center;
+  align-items: center;
+  justify-content: center;
 }
-
-
-.placeholder-hamster {
-  font-size:
-    50px;
-}
-
 
 .placeholder-board {
-  margin-top:
-    4px;
+  padding: 6px 11px;
 
-  padding:
-    6px 10px;
+  border: 2px solid #795138;
+  border-radius: 6px;
 
-  border:
-    2px solid
-    #795138;
+  background: #ffedc8;
 
-  border-radius:
-    6px;
-
-  background:
-    #ffedc8;
-
-  font-size:
-    13px;
-
-  font-weight:
-    950;
+  font-size: 13px;
+  font-weight: 950;
 }
-
 
 .image-placeholder p {
-  margin:
-    9px 0 0;
+  margin: 9px 0 0;
 
-  color:
-    #92745a;
+  color: #92745a;
 
-  font-size:
-    11px;
+  font-size: 11px;
 }
-
 
 .image-preview {
-  width:
-    100%;
+  width: 100%;
+  max-width: 100%;
 
-  max-height:
-    320px;
+  max-height: 340px;
 
-  margin-bottom:
-    11px;
+  display: block;
 
-  border-radius:
-    11px;
+  margin: 0 auto 11px;
 
-  object-fit:
-    cover;
+  border-radius: 11px;
+
+  object-fit: cover;
 }
 
+.image-preview[hidden] {
+  display: none;
+}
 
 .select-image-button {
-  min-height:
-    44px;
+  width: 100%;
 
-  display:
-    flex;
+  min-height: 46px;
 
-  align-items:
-    center;
+  display: flex;
 
-  justify-content:
-    center;
+  align-items: center;
+  justify-content: center;
 
-  border-radius:
-    11px;
+  gap: 8px;
 
-  background:
-    #e8d7b8;
+  border-radius: 11px;
 
-  color:
-    #533a28;
+  background: #e7d4b4;
 
-  font-size:
-    13px;
-
-  font-weight:
-    900;
-
-  cursor:
-    pointer;
+  font-size: 13px;
+  font-weight: 900;
 }
 
+.photo-icon {
+  width: 19px;
+  height: 15px;
+
+  position: relative;
+
+  display: inline-block;
+
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+
+.photo-icon::before {
+  content: "";
+
+  position: absolute;
+
+  top: 3px;
+  left: 5px;
+
+  width: 5px;
+  height: 5px;
+
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.photo-icon::after {
+  content: "";
+
+  position: absolute;
+
+  top: -5px;
+  left: 4px;
+
+  width: 7px;
+  height: 4px;
+
+  border: 2px solid currentColor;
+  border-bottom: 0;
+
+  border-radius: 3px 3px 0 0;
+}
 
 .hidden-file {
-  display:
-    none;
+  display: none !important;
 }
 
 
-/* ========================================
-   SAVE BUTTON
-======================================== */
+/* =========================================
+   SAVE
+========================================= */
+
+.save-button,
+.cancel-button {
+  width: 100%;
+  max-width: 100%;
+
+  border: 0;
+  border-radius: 14px;
+
+  font-weight: 950;
+}
 
 .save-button {
-  width:
-    100%;
+  min-height: 53px;
 
-  min-height:
-    52px;
+  display: flex;
 
-  margin-top:
-    5px;
+  align-items: center;
+  justify-content: center;
 
-  border:
-    0;
-
-  border-radius:
-    14px;
+  gap: 9px;
 
   background:
     linear-gradient(
-      #e35c50,
-      #d4483e
+      #df5a50,
+      #ce463d
     );
 
-  color:
-    white;
+  color: #fff;
 
   box-shadow:
-    0 4px 0
-    #a83730;
-
-  font-size:
-    15px;
-
-  font-weight:
-    950;
+    0 4px 0 #9f3731;
 }
-
-
-.save-button:active {
-  transform:
-    translateY(2px);
-
-  box-shadow:
-    0 2px 0
-    #a83730;
-}
-
 
 .cancel-button {
-  width:
-    100%;
+  min-height: 48px;
 
-  min-height:
-    48px;
+  margin-top: 13px;
 
-  margin-top:
-    12px;
+  background: #e8d6b8;
 
-  border:
-    0;
+  color: #6d533d;
+}
 
-  border-radius:
-    13px;
+.mini-capsule {
+  width: 22px;
+  height: 14px;
+
+  display: inline-block;
+
+  border: 2px solid #fff;
+  border-radius: 12px;
 
   background:
-    #e9d9bd;
+    linear-gradient(
+      90deg,
+      #fff 0 47%,
+      transparent 47% 53%,
+      #fff 53%
+    );
 
-  color:
-    #6d533d;
-
-  font-weight:
-    850;
+  transform: rotate(-25deg);
 }
 
 
-/* ========================================
+/* =========================================
    TOAST
-======================================== */
+========================================= */
 
 .toast {
-  position:
-    fixed;
+  position: fixed;
 
-  z-index:
-    200;
+  z-index: 200;
 
-  left:
-    50%;
-
+  left: 50%;
   bottom:
     calc(
-      90px +
+      92px +
       env(safe-area-inset-bottom)
     );
 
   max-width:
     calc(100% - 40px);
 
-  padding:
-    11px 17px;
+  padding: 11px 17px;
 
-  border-radius:
-    24px;
+  border-radius: 24px;
 
-  background:
-    #3e2b1f;
+  background: #3e2b1f;
 
-  color:
-    white;
+  color: #fff;
 
-  opacity:
-    0;
+  opacity: 0;
 
-  pointer-events:
-    none;
+  pointer-events: none;
 
   transform:
-    translate(
-      -50%,
-      20px
-    );
+    translate(-50%,20px);
 
-  transition:
-    0.2s ease;
+  transition: .2s ease;
 
-  font-size:
-    12px;
+  font-size: 12px;
+  font-weight: 800;
 
-  font-weight:
-    800;
+  text-align: center;
 
-  text-align:
-    center;
-
-  box-shadow:
-    0 5px 20px
-    rgba(0,0,0,0.2);
+  white-space: nowrap;
 }
-
 
 .toast.show {
-  opacity:
-    1;
+  opacity: 1;
 
   transform:
-    translate(
-      -50%,
-      0
-    );
+    translate(-50%,0);
 }
 
 
-/* ========================================
-   DESKTOP
-======================================== */
+/* =========================================
+   SMALL iPHONE
+========================================= */
 
-@media (
-  min-width: 700px
-) {
+@media (max-width: 370px) {
 
-  body {
-    padding:
-      25px 0;
+  .logo {
+    font-size: 20px;
   }
 
+  .logo-sub {
+    letter-spacing: 2px;
+  }
+
+  .cards {
+    gap: 7px;
+  }
+
+  .filter-button {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+}
+
+
+/* =========================================
+   DESKTOP
+========================================= */
+
+@media (min-width: 700px) {
 
   .app {
-    min-height:
-      calc(100vh - 50px);
-
-    border-radius:
-      22px;
+    box-shadow:
+      0 0 30px
+      rgba(55,32,16,.22);
   }
 
-
   .form-screen {
-    min-height:
-      calc(100vh - 30px);
-
-    margin:
-      15px auto;
-
-    border-radius:
-      22px;
-
-    overflow:
-      hidden;
+    box-shadow:
+      0 0 30px
+      rgba(55,32,16,.25);
   }
 
 }
