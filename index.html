@@ -5,29 +5,23 @@
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
+    content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
   >
 
-  <meta
-    name="theme-color"
-    content="#f3d8a7"
-  >
+  <meta name="theme-color" content="#f3d8a7">
 
   <title>ガチャポケット</title>
 
-  <link
-    rel="stylesheet"
-    href="./style.css"
-  >
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
 
-<div class="app">
+<div id="app" class="app">
 
-  <!-- =====================
+  <!-- =========================
        HEADER
-  ====================== -->
+  ========================== -->
 
   <header class="header">
 
@@ -37,12 +31,11 @@
 
       <div class="logo-area">
 
-        <div class="logo-animal">
-          🐹
+        <div class="capsule-mark small">
+          <span></span>
         </div>
 
         <div>
-
           <div class="logo">
             ガチャポケット
           </div>
@@ -50,39 +43,42 @@
           <div class="logo-sub">
             GACHA POCKET
           </div>
-
         </div>
 
       </div>
 
       <button
-        class="icon-button"
         id="settingsButton"
+        class="icon-button"
         type="button"
+        aria-label="設定"
       >
-        ⚙️
+        <span class="menu-lines"></span>
       </button>
 
     </div>
+
 
     <!-- 写真 / リスト -->
 
     <div class="view-switch">
 
       <button
-        class="view-button active"
         id="photoButton"
+        class="view-button active"
         type="button"
       >
-        ▦ 写真
+        <span class="grid-icon"></span>
+        写真
       </button>
 
       <button
-        class="view-button"
         id="listButton"
+        class="view-button"
         type="button"
       >
-        ☷ リスト
+        <span class="list-icon"></span>
+        リスト
       </button>
 
     </div>
@@ -90,18 +86,24 @@
   </header>
 
 
-  <!-- =====================
+  <!-- =========================
        SEARCH
-  ====================== -->
+  ========================== -->
 
   <section class="search-row">
 
-    <input
-      id="searchInput"
-      class="search-input"
-      type="search"
-      placeholder="🔍 ガチャを検索"
-    >
+    <div class="search-box">
+
+      <span class="search-symbol"></span>
+
+      <input
+        id="searchInput"
+        type="search"
+        placeholder="ガチャを検索"
+        autocomplete="off"
+      >
+
+    </div>
 
     <button
       id="addButton"
@@ -115,9 +117,9 @@
   </section>
 
 
-  <!-- =====================
+  <!-- =========================
        FILTER
-  ====================== -->
+  ========================== -->
 
   <section class="filter-row">
 
@@ -130,7 +132,7 @@
     </button>
 
     <button
-      class="filter-button yoshino-filter"
+      class="filter-button yoshino"
       data-filter="よしの"
       type="button"
     >
@@ -138,7 +140,7 @@
     </button>
 
     <button
-      class="filter-button takeuchi-filter"
+      class="filter-button takeuchi"
       data-filter="たけうち"
       type="button"
     >
@@ -149,7 +151,6 @@
       id="sortSelect"
       class="sort-select"
     >
-
       <option value="new">
         追加順
       </option>
@@ -161,15 +162,14 @@
       <option value="title">
         タイトル順
       </option>
-
     </select>
 
   </section>
 
 
-  <!-- =====================
-       CARDS
-  ====================== -->
+  <!-- =========================
+       CONTENT
+  ========================== -->
 
   <main class="content">
 
@@ -178,14 +178,15 @@
       class="cards"
     ></section>
 
+
     <section
       id="empty"
       class="empty"
       hidden
     >
 
-      <div class="empty-animal">
-        🐹
+      <div class="capsule-mark empty-capsule">
+        <span></span>
       </div>
 
       <strong>
@@ -193,7 +194,7 @@
       </strong>
 
       <p>
-        ＋から気になるガチャを
+        ＋から気になるガチャを<br>
         ポケットに入れてね
       </p>
 
@@ -201,61 +202,61 @@
 
   </main>
 
+
+  <!-- =========================
+       BOTTOM NAV
+  ========================== -->
+
+  <nav class="bottom-nav">
+
+    <button
+      class="nav-button active"
+      type="button"
+    >
+      <span class="nav-home-icon"></span>
+      <b>ホーム</b>
+    </button>
+
+    <button
+      id="allGachaButton"
+      class="nav-button"
+      type="button"
+    >
+      <span class="nav-people-icon"></span>
+      <b>ふたりのガチャ</b>
+    </button>
+
+    <button
+      id="bottomSettings"
+      class="nav-button"
+      type="button"
+    >
+      <span class="nav-setting-icon"></span>
+      <b>設定</b>
+    </button>
+
+  </nav>
+
 </div>
 
 
-<!-- =====================
-     BOTTOM NAV
-====================== -->
-
-<nav class="bottom-nav">
-
-  <button
-    class="nav-button active"
-    type="button"
-  >
-    <span>🏠</span>
-    ホーム
-  </button>
-
-  <button
-    class="nav-button"
-    type="button"
-  >
-    <span>👥</span>
-    ふたりのガチャ
-  </button>
-
-  <button
-    class="nav-button"
-    id="bottomSettings"
-    type="button"
-  >
-    <span>⚙️</span>
-    設定
-  </button>
-
-</nav>
-
-
-<!-- =========================================
+<!-- ==================================================
      ADD SCREEN
-========================================== -->
+     ホームとは独立した固定画面に変更
+=================================================== -->
 
 <div
-  class="screen-overlay"
   id="addScreen"
+  class="screen-overlay"
   aria-hidden="true"
 >
 
-  <section class="form-screen">
-
-    <!-- 駄菓子屋のひさし -->
+  <div class="form-screen">
 
     <div class="awning"></div>
 
 
-    <!-- 上部 -->
+    <!-- 追加画面ヘッダー -->
 
     <header class="form-header">
 
@@ -263,11 +264,13 @@
         id="closeAddButton"
         class="back-button"
         type="button"
+        aria-label="戻る"
       >
         ‹
       </button>
 
-      <div>
+
+      <div class="form-header-title">
 
         <h1>
           ガチャを追加
@@ -279,25 +282,28 @@
 
       </div>
 
-      <div class="header-hamster">
-        🐹
+
+      <div class="capsule-mark form-capsule">
+        <span></span>
       </div>
 
     </header>
 
 
-    <!-- FORM -->
+    <!-- =========================
+         FORM
+    ========================== -->
 
     <form
       id="addForm"
       class="gacha-form"
     >
 
-      <!-- 入力者 -->
+      <!-- 入力した人 -->
 
       <div class="form-field">
 
-        <label>
+        <label class="field-title">
           入力した人
         </label>
 
@@ -308,7 +314,8 @@
             data-author="よしの"
             type="button"
           >
-            🐹 よしの
+            <span class="author-dot"></span>
+            よしの
           </button>
 
           <button
@@ -316,7 +323,8 @@
             data-author="たけうち"
             type="button"
           >
-            🐹 たけうち
+            <span class="author-dot"></span>
+            たけうち
           </button>
 
         </div>
@@ -324,18 +332,19 @@
       </div>
 
 
-      <!-- 1 -->
+      <!-- 1 タイトル -->
 
       <div class="form-field">
 
-        <label for="titleInput">
-
+        <label
+          class="field-title"
+          for="titleInput"
+        >
           <span class="number">
             1
           </span>
 
           タイトル
-
         </label>
 
         <input
@@ -348,18 +357,19 @@
       </div>
 
 
-      <!-- 2 -->
+      <!-- 2 発売日 -->
 
       <div class="form-field">
 
-        <label for="releaseInput">
-
+        <label
+          class="field-title"
+          for="releaseInput"
+        >
           <span class="number">
             2
           </span>
 
           発売日予定
-
         </label>
 
         <input
@@ -370,11 +380,11 @@
       </div>
 
 
-      <!-- 3 IMAGE -->
+      <!-- 3 画像 -->
 
       <div class="form-field">
 
-        <label>
+        <div class="field-title">
 
           <span class="number">
             3
@@ -382,7 +392,7 @@
 
           画像
 
-        </label>
+        </div>
 
 
         <div class="image-upload">
@@ -392,8 +402,8 @@
             class="image-placeholder"
           >
 
-            <div class="placeholder-hamster">
-              🐹
+            <div class="capsule-mark placeholder-capsule">
+              <span></span>
             </div>
 
             <div class="placeholder-board">
@@ -410,7 +420,7 @@
           <img
             id="imagePreview"
             class="image-preview"
-            alt=""
+            alt="選択した画像"
             hidden
           >
 
@@ -419,7 +429,8 @@
             class="select-image-button"
             for="imageInput"
           >
-            📷 画像を選択
+            <span class="photo-icon"></span>
+            画像を選択
           </label>
 
 
@@ -435,18 +446,19 @@
       </div>
 
 
-      <!-- 4 -->
+      <!-- 4 URL -->
 
       <div class="form-field">
 
-        <label for="urlInput">
-
+        <label
+          class="field-title"
+          for="urlInput"
+        >
           <span class="number">
             4
           </span>
 
           URL
-
         </label>
 
         <input
@@ -459,18 +471,19 @@
       </div>
 
 
-      <!-- 5 -->
+      <!-- 5 メモ -->
 
       <div class="form-field">
 
-        <label for="memoInput">
-
+        <label
+          class="field-title"
+          for="memoInput"
+        >
           <span class="number">
             5
           </span>
 
           メモ
-
         </label>
 
         <textarea
@@ -482,13 +495,12 @@
       </div>
 
 
-      <!-- SAVE -->
-
       <button
         class="save-button"
         type="submit"
       >
-        🐹 ポケットに入れる
+        <span class="mini-capsule"></span>
+        ポケットに入れる
       </button>
 
 
@@ -502,12 +514,14 @@
 
     </form>
 
-  </section>
+  </div>
 
 </div>
 
 
-<!-- TOAST -->
+<!-- =========================
+     TOAST
+========================== -->
 
 <div
   id="toast"
