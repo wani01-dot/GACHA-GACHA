@@ -3,7 +3,7 @@
    app.js
 ======================================== */
 
-const STORAGE_KEY = "gacha-pocket-main";
+const STORAGE_KEY = "gacha-pocket-main-v2";
 
 
 /* ========================================
@@ -21,7 +21,6 @@ const sampleData = [
     author: "よしの",
     createdAt: 3
   },
-
   {
     id: 2,
     title: "レトロ喫茶マスコット",
@@ -32,7 +31,6 @@ const sampleData = [
     author: "たけうち",
     createdAt: 2
   },
-
   {
     id: 3,
     title: "おやすみ動物たち",
@@ -60,9 +58,11 @@ let currentImage = "";
 
 let viewMode = "photo";
 
+let savedScrollY = 0;
+
 
 /* ========================================
-   ELEMENT
+   ELEMENTS
 ======================================== */
 
 const cards =
@@ -122,6 +122,15 @@ const memoInput =
 const toast =
   document.getElementById("toast");
 
+const settingsButton =
+  document.getElementById("settingsButton");
+
+const bottomSettings =
+  document.getElementById("bottomSettings");
+
+const allGachaButton =
+  document.getElementById("allGachaButton");
+
 
 /* ========================================
    LOAD
@@ -137,24 +146,14 @@ function loadData() {
       );
 
     if (!saved) {
-
-      return [
-        ...sampleData
-      ];
-
+      return [...sampleData];
     }
 
     const parsed =
       JSON.parse(saved);
 
-    if (
-      !Array.isArray(parsed)
-    ) {
-
-      return [
-        ...sampleData
-      ];
-
+    if (!Array.isArray(parsed)) {
+      return [...sampleData];
     }
 
     return parsed;
@@ -166,9 +165,7 @@ function loadData() {
       error
     );
 
-    return [
-      ...sampleData
-    ];
+    return [...sampleData];
 
   }
 
@@ -196,7 +193,7 @@ function saveData() {
     );
 
     alert(
-      "データを保存できませんでした。画像サイズが大きすぎる可能性があります。"
+      "保存できませんでした。画像サイズが大きすぎる可能性があります。"
     );
 
   }
@@ -205,7 +202,7 @@ function saveData() {
 
 
 /* ========================================
-   ESCAPE HTML
+   ESCAPE
 ======================================== */
 
 function escapeHTML(value) {
@@ -213,30 +210,24 @@ function escapeHTML(value) {
   return String(
     value ?? ""
   ).replace(
-
     /[&<>"']/g,
-
     character => ({
-
       "&": "&amp;",
-
       "<": "&lt;",
-
       ">": "&gt;",
-
       '"': "&quot;",
-
       "'": "&#039;"
-
     })[character]
-
   );
 
 }
 
 
 /* ========================================
-   NO IMAGE
+   IMAGE PLACEHOLDER
+
+   絵文字・外部画像を使わず
+   CSSだけで表示
 ======================================== */
 
 function createPlaceholder() {
@@ -246,17 +237,18 @@ function createPlaceholder() {
 
       <div>
 
-        <span
-          class="no-image-animal"
+        <div
+          class="
+            capsule-mark
+            card-placeholder-capsule
+          "
         >
-          🐹
-        </span>
+          <span></span>
+        </div>
 
-        <span
-          class="no-image-board"
-        >
+        <div class="no-image-board">
           まだ入ってないよ
-        </span>
+        </div>
 
       </div>
 
@@ -267,22 +259,19 @@ function createPlaceholder() {
 
 
 /* ========================================
-   CREATE CARD
+   CARD
 ======================================== */
 
 function createCard(item) {
 
   const authorClass =
     item.author === "よしの"
-
       ? "by-yoshino"
-
       : "by-takeuchi";
 
 
   const imageHTML =
     item.image
-
       ? `
         <img
           class="gacha-image"
@@ -290,17 +279,12 @@ function createCard(item) {
           alt=""
         >
       `
-
       : createPlaceholder();
 
 
   const releaseText =
     item.releaseDate
-
-      ? formatDate(
-          item.releaseDate
-        )
-
+      ? formatDate(item.releaseDate)
       : "発売日未定";
 
 
@@ -308,6 +292,8 @@ function createCard(item) {
     <article
       class="gacha-card"
       data-id="${item.id}"
+      tabindex="0"
+      role="button"
     >
 
       ${imageHTML}
@@ -318,42 +304,25 @@ function createCard(item) {
           ${authorClass}
         "
       >
-        by
-        ${escapeHTML(
-          item.author
-        )}
+        by ${escapeHTML(item.author)}
       </span>
 
 
       <div class="card-body">
 
         <div class="card-title">
-
-          ${escapeHTML(
-            item.title
-          )}
-
+          ${escapeHTML(item.title)}
         </div>
-
 
         <div class="card-date">
-
-          📅
-          ${releaseText}
-
+          ${escapeHTML(releaseText)}
         </div>
 
-
         <div class="card-memo">
-
           ${
-            escapeHTML(
-              item.memo
-            )
-            ||
-            "メモなし"
+            escapeHTML(item.memo)
+            || "メモなし"
           }
-
         </div>
 
       </div>
@@ -365,7 +334,7 @@ function createCard(item) {
 
 
 /* ========================================
-   FORMAT DATE
+   DATE
 ======================================== */
 
 function formatDate(date) {
@@ -377,12 +346,8 @@ function formatDate(date) {
   const parts =
     date.split("-");
 
-  if (
-    parts.length !== 3
-  ) {
-
+  if (parts.length !== 3) {
     return date;
-
   }
 
   return (
@@ -411,105 +376,77 @@ function render() {
 
 
   let result =
-    gachas.filter(
-      item => {
+    gachas.filter(item => {
 
-        const authorMatch =
-
-          currentFilter ===
-          "all"
-
-          ||
-
-          item.author ===
-          currentFilter;
+      const authorMatch =
+        currentFilter === "all"
+        ||
+        item.author === currentFilter;
 
 
-        const searchText =
-          `
-            ${item.title}
-            ${item.memo}
-            ${item.author}
-          `
+      const searchText =
+        [
+          item.title,
+          item.memo,
+          item.author
+        ]
+          .join(" ")
           .toLowerCase();
 
 
-        const keywordMatch =
-          searchText.includes(
-            keyword
-          );
+      const keywordMatch =
+        searchText.includes(keyword);
 
 
-        return (
-          authorMatch &&
-          keywordMatch
-        );
+      return (
+        authorMatch &&
+        keywordMatch
+      );
 
-      }
-    );
-
-
-  /* SORT */
-
-  result =
-    [...result];
+    });
 
 
-  if (
-    sortSelect.value ===
-    "new"
-  ) {
+  result = [...result];
+
+
+  /* 追加順 */
+
+  if (sortSelect.value === "new") {
 
     result.sort(
       (a, b) =>
-
-        (
-          b.createdAt ||
-          0
-        )
-
+        (b.createdAt || 0)
         -
-
-        (
-          a.createdAt ||
-          0
-        )
+        (a.createdAt || 0)
     );
 
   }
 
 
-  if (
-    sortSelect.value ===
-    "release"
-  ) {
+  /* 発売日順 */
+
+  if (sortSelect.value === "release") {
 
     result.sort(
       (a, b) =>
-
         (
           a.releaseDate ||
           "9999-99-99"
-        )
-        .localeCompare(
-
+        ).localeCompare(
           b.releaseDate ||
           "9999-99-99"
-
         )
     );
 
   }
 
 
-  if (
-    sortSelect.value ===
-    "title"
-  ) {
+  /* タイトル順 */
+
+  if (sortSelect.value === "title") {
 
     result.sort(
       (a, b) =>
-
         a.title.localeCompare(
           b.title,
           "ja"
@@ -518,8 +455,6 @@ function render() {
 
   }
 
-
-  /* DRAW */
 
   cards.innerHTML =
     result
@@ -531,21 +466,33 @@ function render() {
     result.length !== 0;
 
 
-  saveData();
+  if (viewMode === "list") {
+
+    cards.classList.add(
+      "list-mode"
+    );
+
+  } else {
+
+    cards.classList.remove(
+      "list-mode"
+    );
+
+  }
 
 }
 
 
 /* ========================================
-   PHOTO MODE
+   VIEW SWITCH
 ======================================== */
 
-photoButton.addEventListener(
-  "click",
-  () => {
+function setViewMode(mode) {
 
-    viewMode =
-      "photo";
+  viewMode = mode;
+
+
+  if (mode === "photo") {
 
     cards.classList.remove(
       "list-mode"
@@ -559,20 +506,7 @@ photoButton.addEventListener(
       .classList
       .remove("active");
 
-  }
-);
-
-
-/* ========================================
-   LIST MODE
-======================================== */
-
-listButton.addEventListener(
-  "click",
-  () => {
-
-    viewMode =
-      "list";
+  } else {
 
     cards.classList.add(
       "list-mode"
@@ -587,6 +521,19 @@ listButton.addEventListener(
       .remove("active");
 
   }
+
+}
+
+
+photoButton.addEventListener(
+  "click",
+  () => setViewMode("photo")
+);
+
+
+listButton.addEventListener(
+  "click",
+  () => setViewMode("list")
 );
 
 
@@ -615,66 +562,122 @@ sortSelect.addEventListener(
 ======================================== */
 
 document
-  .querySelectorAll(
-    ".filter-button"
-  )
-  .forEach(
-    button => {
+  .querySelectorAll(".filter-button")
+  .forEach(button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-          currentFilter =
-            button.dataset.filter;
+        currentFilter =
+          button.dataset.filter;
 
 
-          document
-            .querySelectorAll(
-              ".filter-button"
-            )
-            .forEach(
-              item => {
+        document
+          .querySelectorAll(
+            ".filter-button"
+          )
+          .forEach(item => {
 
-                item
-                  .classList
-                  .remove(
-                    "active"
-                  );
+            item
+              .classList
+              .remove("active");
 
-              }
-            );
+          });
 
 
-          button
-            .classList
-            .add(
-              "active"
-            );
+        button
+          .classList
+          .add("active");
 
 
-          render();
+        render();
 
-        }
-      );
+      }
+    );
 
-    }
-  );
+  });
 
 
 /* ========================================
-   OPEN ADD SCREEN
+   iPHONE BODY LOCK
+
+   追加画面を開いた時に
+   背景のホームを完全固定する
+======================================== */
+
+function lockBackground() {
+
+  savedScrollY =
+    window.scrollY ||
+    window.pageYOffset ||
+    0;
+
+
+  document.body.style.position =
+    "fixed";
+
+  document.body.style.top =
+    `-${savedScrollY}px`;
+
+  document.body.style.left =
+    "0";
+
+  document.body.style.right =
+    "0";
+
+  document.body.style.width =
+    "100%";
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+function unlockBackground() {
+
+  document.body.style.position =
+    "";
+
+  document.body.style.top =
+    "";
+
+  document.body.style.left =
+    "";
+
+  document.body.style.right =
+    "";
+
+  document.body.style.width =
+    "";
+
+  document.body.style.overflow =
+    "";
+
+
+  window.scrollTo(
+    0,
+    savedScrollY
+  );
+
+}
+
+
+/* ========================================
+   OPEN ADD
 ======================================== */
 
 function openAddScreen() {
 
   resetAddForm();
 
+  lockBackground();
+
+
   addScreen
     .classList
-    .add(
-      "open"
-    );
+    .add("open");
 
 
   addScreen.setAttribute(
@@ -683,39 +686,30 @@ function openAddScreen() {
   );
 
 
-  document.body.style.overflow =
-    "hidden";
+  const formScreen =
+    addScreen.querySelector(
+      ".form-screen"
+    );
 
 
-  setTimeout(
-    () => {
+  if (formScreen) {
 
-      titleInput.focus();
+    formScreen.scrollTop = 0;
 
-    },
-    200
-  );
+  }
 
 }
 
 
-addButton.addEventListener(
-  "click",
-  openAddScreen
-);
-
-
 /* ========================================
-   CLOSE ADD SCREEN
+   CLOSE ADD
 ======================================== */
 
 function closeAddScreen() {
 
   addScreen
     .classList
-    .remove(
-      "open"
-    );
+    .remove("open");
 
 
   addScreen.setAttribute(
@@ -724,10 +718,15 @@ function closeAddScreen() {
   );
 
 
-  document.body.style.overflow =
-    "";
+  unlockBackground();
 
 }
+
+
+addButton.addEventListener(
+  "click",
+  openAddScreen
+);
 
 
 closeAddButton.addEventListener(
@@ -747,48 +746,38 @@ cancelAddButton.addEventListener(
 ======================================== */
 
 document
-  .querySelectorAll(
-    ".author-button"
-  )
-  .forEach(
-    button => {
+  .querySelectorAll(".author-button")
+  .forEach(button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-          currentAuthor =
-            button.dataset.author;
+        currentAuthor =
+          button.dataset.author;
 
 
-          document
-            .querySelectorAll(
-              ".author-button"
-            )
-            .forEach(
-              item => {
+        document
+          .querySelectorAll(
+            ".author-button"
+          )
+          .forEach(item => {
 
-                item
-                  .classList
-                  .remove(
-                    "selected"
-                  );
+            item
+              .classList
+              .remove("selected");
 
-              }
-            );
+          });
 
 
-          button
-            .classList
-            .add(
-              "selected"
-            );
+        button
+          .classList
+          .add("selected");
 
-        }
-      );
+      }
+    );
 
-    }
-  );
+  });
 
 
 /* ========================================
@@ -804,13 +793,9 @@ imageInput.addEventListener(
 
 
     if (!file) {
-
       return;
-
     }
 
-
-    /* 画像以外 */
 
     if (
       !file.type.startsWith(
@@ -822,8 +807,7 @@ imageInput.addEventListener(
         "画像ファイルを選んでね"
       );
 
-      imageInput.value =
-        "";
+      imageInput.value = "";
 
       return;
 
@@ -837,12 +821,8 @@ imageInput.addEventListener(
     reader.onload =
       loadEvent => {
 
-        const originalImage =
-          loadEvent.target.result;
-
-
         resizeImage(
-          originalImage,
+          loadEvent.target.result,
           resizedImage => {
 
             currentImage =
@@ -866,9 +846,7 @@ imageInput.addEventListener(
       };
 
 
-    reader.readAsDataURL(
-      file
-    );
+    reader.readAsDataURL(file);
 
   }
 );
@@ -877,9 +855,8 @@ imageInput.addEventListener(
 /* ========================================
    IMAGE RESIZE
 
-   iPhone写真をそのまま
-   localStorageへ入れると
-   容量オーバーしやすいため圧縮
+   localStorageを圧迫しにくいよう
+   iPhone写真を縮小
 ======================================== */
 
 function resizeImage(
@@ -894,9 +871,7 @@ function resizeImage(
   image.onload =
     () => {
 
-      const maxSize =
-        1000;
-
+      const maxSize = 900;
 
       let width =
         image.width;
@@ -906,45 +881,27 @@ function resizeImage(
 
 
       if (
-        width >
-        height
+        width > maxSize ||
+        height > maxSize
       ) {
 
-        if (
-          width >
-          maxSize
-        ) {
+        const ratio =
+          Math.min(
+            maxSize / width,
+            maxSize / height
+          );
 
-          height =
-            Math.round(
-              height *
-              maxSize /
-              width
-            );
 
-          width =
-            maxSize;
+        width =
+          Math.round(
+            width * ratio
+          );
 
-        }
 
-      } else {
-
-        if (
-          height >
-          maxSize
-        ) {
-
-          width =
-            Math.round(
-              width *
-              maxSize /
-              height
-            );
-
-          height =
-            maxSize;
-
-        }
+        height =
+          Math.round(
+            height * ratio
+          );
 
       }
 
@@ -963,9 +920,7 @@ function resizeImage(
 
 
       const context =
-        canvas.getContext(
-          "2d"
-        );
+        canvas.getContext("2d");
 
 
       context.drawImage(
@@ -980,25 +935,22 @@ function resizeImage(
       const compressed =
         canvas.toDataURL(
           "image/jpeg",
-          0.75
+          0.72
         );
 
 
-      callback(
-        compressed
-      );
+      callback(compressed);
 
     };
 
 
-  image.src =
-    source;
+  image.src = source;
 
 }
 
 
 /* ========================================
-   ADD
+   ADD NEW GACHA
 ======================================== */
 
 addForm.addEventListener(
@@ -1073,7 +1025,7 @@ addForm.addEventListener(
 
 
     showToast(
-      "🐹 ポケットに入れたよ！"
+      "ポケットに追加したよ"
     );
 
   }
@@ -1081,7 +1033,7 @@ addForm.addEventListener(
 
 
 /* ========================================
-   RESET ADD FORM
+   RESET FORM
 ======================================== */
 
 function resetAddForm() {
@@ -1110,25 +1062,186 @@ function resetAddForm() {
 
 
   document
-    .querySelectorAll(
-      ".author-button"
-    )
-    .forEach(
-      button => {
+    .querySelectorAll(".author-button")
+    .forEach(button => {
 
-        button
-          .classList
-          .toggle(
+      button
+        .classList
+        .toggle(
+          "selected",
+          button.dataset.author ===
+          "よしの"
+        );
 
-            "selected",
+    });
 
-            button.dataset.author ===
-            "よしの"
+}
 
+
+/* ========================================
+   CARD TAP
+
+   現時点ではURLがある場合に開く
+======================================== */
+
+cards.addEventListener(
+  "click",
+  event => {
+
+    const card =
+      event.target.closest(
+        ".gacha-card"
+      );
+
+
+    if (!card) {
+      return;
+    }
+
+
+    const id =
+      Number(card.dataset.id);
+
+
+    const item =
+      gachas.find(
+        gacha => gacha.id === id
+      );
+
+
+    if (!item) {
+      return;
+    }
+
+
+    if (item.url) {
+
+      window.open(
+        item.url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      return;
+
+    }
+
+
+    showToast(
+      "このガチャにはURLがまだないよ"
+    );
+
+  }
+);
+
+
+/* ========================================
+   KEYBOARD CARD ACCESS
+======================================== */
+
+cards.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key !== "Enter" &&
+      event.key !== " "
+    ) {
+      return;
+    }
+
+
+    const card =
+      event.target.closest(
+        ".gacha-card"
+      );
+
+
+    if (!card) {
+      return;
+    }
+
+
+    event.preventDefault();
+
+    card.click();
+
+  }
+);
+
+
+/* ========================================
+   TWO PEOPLE BUTTON
+======================================== */
+
+if (allGachaButton) {
+
+  allGachaButton.addEventListener(
+    "click",
+    () => {
+
+      currentFilter =
+        "all";
+
+
+      document
+        .querySelectorAll(
+          ".filter-button"
+        )
+        .forEach(button => {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.filter ===
+              "all"
           );
 
-      }
-    );
+        });
+
+
+      render();
+
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    }
+  );
+
+}
+
+
+/* ========================================
+   SETTINGS
+======================================== */
+
+function temporarySettings() {
+
+  showToast(
+    "設定は次に作るよ"
+  );
+
+}
+
+
+if (settingsButton) {
+
+  settingsButton.addEventListener(
+    "click",
+    temporarySettings
+  );
+
+}
+
+
+if (bottomSettings) {
+
+  bottomSettings.addEventListener(
+    "click",
+    temporarySettings
+  );
 
 }
 
@@ -1153,9 +1266,7 @@ function showToast(message) {
 
   toast
     .classList
-    .add(
-      "show"
-    );
+    .add("show");
 
 
   toastTimer =
@@ -1164,9 +1275,7 @@ function showToast(message) {
 
         toast
           .classList
-          .remove(
-            "show"
-          );
+          .remove("show");
 
       },
       1800
@@ -1176,37 +1285,38 @@ function showToast(message) {
 
 
 /* ========================================
-   SETTINGS
-   現段階では仮
+   SAFETY
+
+   画面回転などでも
+   横位置を変に残さない
 ======================================== */
 
-function temporarySettings() {
+window.addEventListener(
+  "orientationchange",
+  () => {
 
-  showToast(
-    "⚙️ 設定画面は次に作るよ"
-  );
+    setTimeout(
+      () => {
 
-}
+        if (
+          !addScreen
+            .classList
+            .contains("open")
+        ) {
 
+          window.scrollTo(
+            0,
+            window.scrollY
+          );
 
-document
-  .getElementById(
-    "settingsButton"
-  )
-  .addEventListener(
-    "click",
-    temporarySettings
-  );
+        }
 
+      },
+      150
+    );
 
-document
-  .getElementById(
-    "bottomSettings"
-  )
-  .addEventListener(
-    "click",
-    temporarySettings
-  );
+  }
+);
 
 
 /* ========================================
