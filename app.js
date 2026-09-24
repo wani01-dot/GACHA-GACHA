@@ -1,14 +1,9 @@
-/* ========================================
-   ガチャポケット
-   app.js
-======================================== */
+const STORAGE_KEY =
+  "gacha-pocket-main-v2";
 
-const STORAGE_KEY = "gacha-pocket-main-v2";
+const SETTINGS_KEY =
+  "gacha-pocket-settings-v1";
 
-
-/* ========================================
-   SAMPLE DATA
-======================================== */
 
 const sampleData = [
   {
@@ -44,26 +39,42 @@ const sampleData = [
 ];
 
 
-/* ========================================
-   STATE
-======================================== */
-
-let gachas = loadData();
-
-let currentFilter = "all";
-
-let currentAuthor = "よしの";
-
-let currentImage = "";
-
-let viewMode = "photo";
-
-let savedScrollY = 0;
+const defaultSettings = {
+  user: "よしの",
+  view: "photo",
+  sort: "new"
+};
 
 
-/* ========================================
-   ELEMENTS
-======================================== */
+let gachas =
+  loadData();
+
+let settings =
+  loadSettings();
+
+let currentFilter =
+  "all";
+
+let currentAuthor =
+  settings.user;
+
+let currentImage =
+  "";
+
+let viewMode =
+  settings.view;
+
+let editingId =
+  null;
+
+let detailId =
+  null;
+
+let savedScrollY =
+  0;
+
+
+/* ELEMENTS */
 
 const cards =
   document.getElementById("cards");
@@ -89,11 +100,11 @@ const addButton =
 const addScreen =
   document.getElementById("addScreen");
 
-const closeAddButton =
-  document.getElementById("closeAddButton");
+const detailScreen =
+  document.getElementById("detailScreen");
 
-const cancelAddButton =
-  document.getElementById("cancelAddButton");
+const settingsScreen =
+  document.getElementById("settingsScreen");
 
 const addForm =
   document.getElementById("addForm");
@@ -113,28 +124,35 @@ const imagePreview =
 const imagePlaceholder =
   document.getElementById("imagePlaceholder");
 
+const imageSelectedArea =
+  document.getElementById("imageSelectedArea");
+
+const selectImageButton =
+  document.getElementById("selectImageButton");
+
+const removeImageButton =
+  document.getElementById("removeImageButton");
+
 const urlInput =
   document.getElementById("urlInput");
 
 const memoInput =
   document.getElementById("memoInput");
 
+const formScreenTitle =
+  document.getElementById("formScreenTitle");
+
+const formScreenSubtitle =
+  document.getElementById("formScreenSubtitle");
+
+const saveButton =
+  document.getElementById("saveButton");
+
 const toast =
   document.getElementById("toast");
 
-const settingsButton =
-  document.getElementById("settingsButton");
 
-const bottomSettings =
-  document.getElementById("bottomSettings");
-
-const allGachaButton =
-  document.getElementById("allGachaButton");
-
-
-/* ========================================
-   LOAD
-======================================== */
+/* STORAGE */
 
 function loadData() {
 
@@ -152,18 +170,11 @@ function loadData() {
     const parsed =
       JSON.parse(saved);
 
-    if (!Array.isArray(parsed)) {
-      return [...sampleData];
-    }
+    return Array.isArray(parsed)
+      ? parsed
+      : [...sampleData];
 
-    return parsed;
-
-  } catch (error) {
-
-    console.error(
-      "データ読み込みエラー",
-      error
-    );
+  } catch {
 
     return [...sampleData];
 
@@ -171,10 +182,6 @@ function loadData() {
 
 }
 
-
-/* ========================================
-   SAVE
-======================================== */
 
 function saveData() {
 
@@ -185,15 +192,10 @@ function saveData() {
       JSON.stringify(gachas)
     );
 
-  } catch (error) {
-
-    console.error(
-      "保存エラー",
-      error
-    );
+  } catch {
 
     alert(
-      "保存できませんでした。画像サイズが大きすぎる可能性があります。"
+      "保存できませんでした。画像が大きすぎる可能性があります。"
     );
 
   }
@@ -201,9 +203,44 @@ function saveData() {
 }
 
 
-/* ========================================
-   ESCAPE
-======================================== */
+function loadSettings() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        SETTINGS_KEY
+      );
+
+    if (!saved) {
+      return {...defaultSettings};
+    }
+
+    return {
+      ...defaultSettings,
+      ...JSON.parse(saved)
+    };
+
+  } catch {
+
+    return {...defaultSettings};
+
+  }
+
+}
+
+
+function saveSettings() {
+
+  localStorage.setItem(
+    SETTINGS_KEY,
+    JSON.stringify(settings)
+  );
+
+}
+
+
+/* HELPERS */
 
 function escapeHTML(value) {
 
@@ -222,120 +259,6 @@ function escapeHTML(value) {
 
 }
 
-
-/* ========================================
-   IMAGE PLACEHOLDER
-
-   絵文字・外部画像を使わず
-   CSSだけで表示
-======================================== */
-
-function createPlaceholder() {
-
-  return `
-    <div class="no-image">
-
-      <div>
-
-        <div
-          class="
-            capsule-mark
-            card-placeholder-capsule
-          "
-        >
-          <span></span>
-        </div>
-
-        <div class="no-image-board">
-          まだ入ってないよ
-        </div>
-
-      </div>
-
-    </div>
-  `;
-
-}
-
-
-/* ========================================
-   CARD
-======================================== */
-
-function createCard(item) {
-
-  const authorClass =
-    item.author === "よしの"
-      ? "by-yoshino"
-      : "by-takeuchi";
-
-
-  const imageHTML =
-    item.image
-      ? `
-        <img
-          class="gacha-image"
-          src="${item.image}"
-          alt=""
-        >
-      `
-      : createPlaceholder();
-
-
-  const releaseText =
-    item.releaseDate
-      ? formatDate(item.releaseDate)
-      : "発売日未定";
-
-
-  return `
-    <article
-      class="gacha-card"
-      data-id="${item.id}"
-      tabindex="0"
-      role="button"
-    >
-
-      ${imageHTML}
-
-      <span
-        class="
-          by-badge
-          ${authorClass}
-        "
-      >
-        by ${escapeHTML(item.author)}
-      </span>
-
-
-      <div class="card-body">
-
-        <div class="card-title">
-          ${escapeHTML(item.title)}
-        </div>
-
-        <div class="card-date">
-          ${escapeHTML(releaseText)}
-        </div>
-
-        <div class="card-memo">
-          ${
-            escapeHTML(item.memo)
-            || "メモなし"
-          }
-        </div>
-
-      </div>
-
-    </article>
-  `;
-
-}
-
-
-/* ========================================
-   DATE
-======================================== */
 
 function formatDate(date) {
 
@@ -362,9 +285,108 @@ function formatDate(date) {
 }
 
 
-/* ========================================
-   RENDER
-======================================== */
+function placeholderHTML(
+  detail = false
+) {
+
+  return `
+    <div class="${
+      detail
+        ? "detail-no-image"
+        : "no-image"
+    }">
+
+      <div>
+
+        <div
+          class="
+            capsule-mark
+            card-placeholder-capsule
+          "
+        >
+          <span></span>
+        </div>
+
+        <div class="no-image-board">
+          まだ入ってないよ
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+/* RENDER */
+
+function createCard(item) {
+
+  const authorClass =
+    item.author === "よしの"
+      ? "by-yoshino"
+      : "by-takeuchi";
+
+
+  const imageHTML =
+    item.image
+      ? `
+        <img
+          class="gacha-image"
+          src="${item.image}"
+          alt=""
+        >
+      `
+      : placeholderHTML();
+
+
+  return `
+    <article
+      class="gacha-card"
+      data-id="${item.id}"
+    >
+
+      ${imageHTML}
+
+      <span
+        class="
+          by-badge
+          ${authorClass}
+        "
+      >
+        by ${escapeHTML(item.author)}
+      </span>
+
+      <div class="card-body">
+
+        <div class="card-title">
+          ${escapeHTML(item.title)}
+        </div>
+
+        <div class="card-date">
+          ${escapeHTML(
+            formatDate(
+              item.releaseDate
+            )
+          )}
+        </div>
+
+        <div class="card-memo">
+          ${
+            escapeHTML(item.memo)
+            ||
+            "メモなし"
+          }
+        </div>
+
+      </div>
+
+    </article>
+  `;
+
+}
+
 
 function render() {
 
@@ -384,37 +406,35 @@ function render() {
         item.author === currentFilter;
 
 
-      const searchText =
+      const text =
         [
           item.title,
           item.memo,
           item.author
         ]
-          .join(" ")
-          .toLowerCase();
-
-
-      const keywordMatch =
-        searchText.includes(keyword);
+        .join(" ")
+        .toLowerCase();
 
 
       return (
         authorMatch &&
-        keywordMatch
+        text.includes(keyword)
       );
 
     });
 
 
-  result = [...result];
+  result =
+    [...result];
 
 
-  /* 追加順 */
-
-  if (sortSelect.value === "new") {
+  if (
+    sortSelect.value ===
+    "new"
+  ) {
 
     result.sort(
-      (a, b) =>
+      (a,b) =>
         (b.createdAt || 0)
         -
         (a.createdAt || 0)
@@ -423,16 +443,18 @@ function render() {
   }
 
 
-  /* 発売日順 */
-
-  if (sortSelect.value === "release") {
+  if (
+    sortSelect.value ===
+    "release"
+  ) {
 
     result.sort(
-      (a, b) =>
+      (a,b) =>
         (
           a.releaseDate ||
           "9999-99-99"
-        ).localeCompare(
+        )
+        .localeCompare(
           b.releaseDate ||
           "9999-99-99"
         )
@@ -441,12 +463,13 @@ function render() {
   }
 
 
-  /* タイトル順 */
-
-  if (sortSelect.value === "title") {
+  if (
+    sortSelect.value ===
+    "title"
+  ) {
 
     result.sort(
-      (a, b) =>
+      (a,b) =>
         a.title.localeCompare(
           b.title,
           "ja"
@@ -466,107 +489,88 @@ function render() {
     result.length !== 0;
 
 
-  if (viewMode === "list") {
+  cards.classList.toggle(
+    "list-mode",
+    viewMode === "list"
+  );
 
-    cards.classList.add(
-      "list-mode"
-    );
+}
 
-  } else {
 
-    cards.classList.remove(
-      "list-mode"
-    );
+/* VIEW */
+
+function setViewMode(
+  mode,
+  save = true
+) {
+
+  viewMode =
+    mode;
+
+
+  photoButton.classList.toggle(
+    "active",
+    mode === "photo"
+  );
+
+  listButton.classList.toggle(
+    "active",
+    mode === "list"
+  );
+
+
+  cards.classList.toggle(
+    "list-mode",
+    mode === "list"
+  );
+
+
+  if (save) {
+
+    settings.view =
+      mode;
+
+    saveSettings();
 
   }
 
 }
 
 
-/* ========================================
-   VIEW SWITCH
-======================================== */
-
-function setViewMode(mode) {
-
-  viewMode = mode;
+photoButton.onclick =
+  () => setViewMode("photo");
 
 
-  if (mode === "photo") {
-
-    cards.classList.remove(
-      "list-mode"
-    );
-
-    photoButton
-      .classList
-      .add("active");
-
-    listButton
-      .classList
-      .remove("active");
-
-  } else {
-
-    cards.classList.add(
-      "list-mode"
-    );
-
-    listButton
-      .classList
-      .add("active");
-
-    photoButton
-      .classList
-      .remove("active");
-
-  }
-
-}
+listButton.onclick =
+  () => setViewMode("list");
 
 
-photoButton.addEventListener(
-  "click",
-  () => setViewMode("photo")
-);
+searchInput.oninput =
+  render;
 
 
-listButton.addEventListener(
-  "click",
-  () => setViewMode("list")
-);
+sortSelect.onchange =
+  () => {
+
+    settings.sort =
+      sortSelect.value;
+
+    saveSettings();
+
+    render();
+
+  };
 
 
-/* ========================================
-   SEARCH
-======================================== */
-
-searchInput.addEventListener(
-  "input",
-  render
-);
-
-
-/* ========================================
-   SORT
-======================================== */
-
-sortSelect.addEventListener(
-  "change",
-  render
-);
-
-
-/* ========================================
-   FILTER
-======================================== */
+/* FILTER */
 
 document
-  .querySelectorAll(".filter-button")
+  .querySelectorAll(
+    ".filter-button"
+  )
   .forEach(button => {
 
-    button.addEventListener(
-      "click",
+    button.onclick =
       () => {
 
         currentFilter =
@@ -579,39 +583,35 @@ document
           )
           .forEach(item => {
 
-            item
-              .classList
-              .remove("active");
+            item.classList.toggle(
+              "active",
+              item === button
+            );
 
           });
 
 
-        button
-          .classList
-          .add("active");
-
-
         render();
 
-      }
-    );
+      };
 
   });
 
 
-/* ========================================
-   iPHONE BODY LOCK
-
-   追加画面を開いた時に
-   背景のホームを完全固定する
-======================================== */
+/* SCREEN LOCK */
 
 function lockBackground() {
 
+  if (
+    document.body.style.position ===
+    "fixed"
+  ) {
+    return;
+  }
+
+
   savedScrollY =
-    window.scrollY ||
-    window.pageYOffset ||
-    0;
+    window.scrollY || 0;
 
 
   document.body.style.position =
@@ -628,9 +628,6 @@ function lockBackground() {
 
   document.body.style.width =
     "100%";
-
-  document.body.style.overflow =
-    "hidden";
 
 }
 
@@ -652,9 +649,6 @@ function unlockBackground() {
   document.body.style.width =
     "";
 
-  document.body.style.overflow =
-    "";
-
 
   window.scrollTo(
     0,
@@ -664,128 +658,180 @@ function unlockBackground() {
 }
 
 
-/* ========================================
-   OPEN ADD
-======================================== */
-
-function openAddScreen() {
-
-  resetAddForm();
+function openScreen(screen) {
 
   lockBackground();
 
+  screen.classList.add(
+    "open"
+  );
 
-  addScreen
-    .classList
-    .add("open");
-
-
-  addScreen.setAttribute(
+  screen.setAttribute(
     "aria-hidden",
     "false"
   );
 
 
-  const formScreen =
-    addScreen.querySelector(
+  const inner =
+    screen.querySelector(
       ".form-screen"
     );
 
+  if (inner) {
+    inner.scrollTop = 0;
+  }
 
-  if (formScreen) {
+}
 
-    formScreen.scrollTop = 0;
+
+function closeScreen(screen) {
+
+  screen.classList.remove(
+    "open"
+  );
+
+  screen.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  const anyOpen =
+    document.querySelector(
+      ".screen-overlay.open"
+    );
+
+
+  if (!anyOpen) {
+    unlockBackground();
+  }
+
+}
+
+
+/* IMAGE STATE */
+
+function updateImageUI() {
+
+  const hasImage =
+    Boolean(currentImage);
+
+
+  imagePlaceholder.hidden =
+    hasImage;
+
+
+  imageSelectedArea.hidden =
+    !hasImage;
+
+
+  selectImageButton.hidden =
+    hasImage;
+
+
+  if (hasImage) {
+
+    imagePreview.src =
+      currentImage;
+
+  } else {
+
+    imagePreview.removeAttribute(
+      "src"
+    );
 
   }
 
 }
 
 
-/* ========================================
-   CLOSE ADD
-======================================== */
+/* ADD */
 
-function closeAddScreen() {
+function setAuthor(author) {
 
-  addScreen
-    .classList
-    .remove("open");
+  currentAuthor =
+    author;
 
 
-  addScreen.setAttribute(
-    "aria-hidden",
-    "true"
-  );
+  document
+    .querySelectorAll(
+      ".author-button"
+    )
+    .forEach(button => {
 
+      button.classList.toggle(
+        "selected",
+        button.dataset.author ===
+          author
+      );
 
-  unlockBackground();
+    });
 
 }
 
 
-addButton.addEventListener(
-  "click",
-  openAddScreen
-);
+function openAddScreen() {
+
+  editingId =
+    null;
 
 
-closeAddButton.addEventListener(
-  "click",
-  closeAddScreen
-);
+  addForm.reset();
 
 
-cancelAddButton.addEventListener(
-  "click",
-  closeAddScreen
-);
+  currentImage =
+    "";
 
 
-/* ========================================
-   AUTHOR
-======================================== */
+  setAuthor(
+    settings.user
+  );
+
+
+  updateImageUI();
+
+
+  formScreenTitle.textContent =
+    "ガチャを追加";
+
+
+  formScreenSubtitle.textContent =
+    "ポケットに入れておこう";
+
+
+  saveButton.lastChild.textContent =
+    " ポケットに入れる";
+
+
+  openScreen(
+    addScreen
+  );
+
+}
+
+
+addButton.onclick =
+  openAddScreen;
+
 
 document
-  .querySelectorAll(".author-button")
+  .querySelectorAll(
+    ".author-button"
+  )
   .forEach(button => {
 
-    button.addEventListener(
-      "click",
-      () => {
-
-        currentAuthor =
-          button.dataset.author;
-
-
-        document
-          .querySelectorAll(
-            ".author-button"
-          )
-          .forEach(item => {
-
-            item
-              .classList
-              .remove("selected");
-
-          });
-
-
-        button
-          .classList
-          .add("selected");
-
-      }
-    );
+    button.onclick =
+      () =>
+        setAuthor(
+          button.dataset.author
+        );
 
   });
 
 
-/* ========================================
-   IMAGE
-======================================== */
+/* IMAGE SELECT */
 
-imageInput.addEventListener(
-  "change",
+imageInput.onchange =
   event => {
 
     const file =
@@ -807,8 +853,6 @@ imageInput.addEventListener(
         "画像ファイルを選んでね"
       );
 
-      imageInput.value = "";
-
       return;
 
     }
@@ -823,22 +867,12 @@ imageInput.addEventListener(
 
         resizeImage(
           loadEvent.target.result,
-          resizedImage => {
+          result => {
 
             currentImage =
-              resizedImage;
+              result;
 
-
-            imagePreview.src =
-              currentImage;
-
-
-            imagePreview.hidden =
-              false;
-
-
-            imagePlaceholder.hidden =
-              true;
+            updateImageUI();
 
           }
         );
@@ -846,18 +880,26 @@ imageInput.addEventListener(
       };
 
 
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(
+      file
+    );
 
-  }
-);
+  };
 
 
-/* ========================================
-   IMAGE RESIZE
+removeImageButton.onclick =
+  () => {
 
-   localStorageを圧迫しにくいよう
-   iPhone写真を縮小
-======================================== */
+    currentImage =
+      "";
+
+    imageInput.value =
+      "";
+
+    updateImageUI();
+
+  };
+
 
 function resizeImage(
   source,
@@ -871,39 +913,28 @@ function resizeImage(
   image.onload =
     () => {
 
-      const maxSize = 900;
-
-      let width =
-        image.width;
-
-      let height =
-        image.height;
+      const maxSize =
+        900;
 
 
-      if (
-        width > maxSize ||
-        height > maxSize
-      ) {
-
-        const ratio =
-          Math.min(
-            maxSize / width,
-            maxSize / height
-          );
+      const ratio =
+        Math.min(
+          1,
+          maxSize / image.width,
+          maxSize / image.height
+        );
 
 
-        width =
-          Math.round(
-            width * ratio
-          );
+      const width =
+        Math.round(
+          image.width * ratio
+        );
 
 
-        height =
-          Math.round(
-            height * ratio
-          );
-
-      }
+      const height =
+        Math.round(
+          image.height * ratio
+        );
 
 
       const canvas =
@@ -919,58 +950,46 @@ function resizeImage(
         height;
 
 
-      const context =
-        canvas.getContext("2d");
-
-
-      context.drawImage(
-        image,
-        0,
-        0,
-        width,
-        height
-      );
-
-
-      const compressed =
-        canvas.toDataURL(
-          "image/jpeg",
-          0.72
+      canvas
+        .getContext("2d")
+        .drawImage(
+          image,
+          0,
+          0,
+          width,
+          height
         );
 
 
-      callback(compressed);
+      callback(
+        canvas.toDataURL(
+          "image/jpeg",
+          .72
+        )
+      );
 
     };
 
 
-  image.src = source;
+  image.src =
+    source;
 
 }
 
 
-/* ========================================
-   ADD NEW GACHA
-======================================== */
+/* SAVE ADD / EDIT */
 
-addForm.addEventListener(
-  "submit",
+addForm.onsubmit =
   event => {
 
     event.preventDefault();
 
 
     const title =
-      titleInput
-        .value
-        .trim();
+      titleInput.value.trim();
 
 
     if (!title) {
-
-      alert(
-        "タイトルを入力してね"
-      );
 
       titleInput.focus();
 
@@ -979,113 +998,204 @@ addForm.addEventListener(
     }
 
 
-    const newGacha = {
+    if (editingId) {
 
-      id:
-        Date.now(),
+      const index =
+        gachas.findIndex(
+          item =>
+            item.id ===
+            editingId
+        );
 
-      title:
+
+      if (index !== -1) {
+
+        gachas[index] = {
+          ...gachas[index],
+
+          title,
+
+          releaseDate:
+            releaseInput.value,
+
+          image:
+            currentImage,
+
+          url:
+            urlInput.value.trim(),
+
+          memo:
+            memoInput.value.trim(),
+
+          author:
+            currentAuthor
+        };
+
+      }
+
+    } else {
+
+      gachas.unshift({
+
+        id:
+          Date.now(),
+
         title,
 
-      releaseDate:
-        releaseInput.value,
+        releaseDate:
+          releaseInput.value,
 
-      image:
-        currentImage,
+        image:
+          currentImage,
 
-      url:
-        urlInput
-          .value
-          .trim(),
+        url:
+          urlInput.value.trim(),
 
-      memo:
-        memoInput
-          .value
-          .trim(),
+        memo:
+          memoInput.value.trim(),
 
-      author:
-        currentAuthor,
+        author:
+          currentAuthor,
 
-      createdAt:
-        Date.now()
+        createdAt:
+          Date.now()
 
-    };
+      });
 
-
-    gachas.unshift(
-      newGacha
-    );
+    }
 
 
     saveData();
 
     render();
 
-    closeAddScreen();
+
+    const savedId =
+      editingId ||
+      gachas[0].id;
 
 
-    showToast(
-      "ポケットに追加したよ"
+    closeScreen(
+      addScreen
     );
 
+
+    showDetail(
+      savedId
+    );
+
+  };
+
+
+/* DETAIL */
+
+function showDetail(id) {
+
+  const item =
+    gachas.find(
+      gacha =>
+        gacha.id === id
+    );
+
+
+  if (!item) {
+    return;
   }
-);
 
 
-/* ========================================
-   RESET FORM
-======================================== */
-
-function resetAddForm() {
-
-  addForm.reset();
+  detailId =
+    id;
 
 
-  currentAuthor =
-    "よしの";
+  const imageArea =
+    document.getElementById(
+      "detailImageArea"
+    );
 
 
-  currentImage =
-    "";
+  imageArea.innerHTML =
+    item.image
+
+      ? `
+        <img
+          class="detail-image"
+          src="${item.image}"
+          alt=""
+        >
+      `
+
+      : placeholderHTML(true);
 
 
-  imagePreview.src =
-    "";
+  const detailAuthor =
+    document.getElementById(
+      "detailAuthor"
+    );
 
 
-  imagePreview.hidden =
-    true;
+  detailAuthor.textContent =
+    `by ${item.author}`;
 
 
-  imagePlaceholder.hidden =
-    false;
+  detailAuthor.className =
+    "detail-author " +
+    (
+      item.author === "よしの"
+        ? "by-yoshino"
+        : "by-takeuchi"
+    );
 
 
-  document
-    .querySelectorAll(".author-button")
-    .forEach(button => {
+  document.getElementById(
+    "detailTitle"
+  ).textContent =
+    item.title;
 
-      button
-        .classList
-        .toggle(
-          "selected",
-          button.dataset.author ===
-          "よしの"
-        );
 
-    });
+  document.getElementById(
+    "detailDate"
+  ).textContent =
+    formatDate(
+      item.releaseDate
+    );
+
+
+  document.getElementById(
+    "detailRelease"
+  ).textContent =
+    item.releaseDate
+      ? "発売予定"
+      : "発売日未定";
+
+
+  document.getElementById(
+    "detailMemo"
+  ).textContent =
+    item.memo ||
+    "メモなし";
+
+
+  document.getElementById(
+    "detailUrlText"
+  ).textContent =
+    item.url ||
+    "URL未登録";
+
+
+  document.getElementById(
+    "openUrlButton"
+  ).disabled =
+    !item.url;
+
+
+  openScreen(
+    detailScreen
+  );
 
 }
 
 
-/* ========================================
-   CARD TAP
-
-   現時点ではURLがある場合に開く
-======================================== */
-
-cards.addEventListener(
-  "click",
+cards.onclick =
   event => {
 
     const card =
@@ -1099,13 +1209,57 @@ cards.addEventListener(
     }
 
 
-    const id =
-      Number(card.dataset.id);
+    showDetail(
+      Number(
+        card.dataset.id
+      )
+    );
 
+  };
+
+
+document.getElementById(
+  "openUrlButton"
+).onclick =
+  () => {
 
     const item =
       gachas.find(
-        gacha => gacha.id === id
+        gacha =>
+          gacha.id ===
+          detailId
+      );
+
+
+    if (
+      !item ||
+      !item.url
+    ) {
+      return;
+    }
+
+
+    window.open(
+      item.url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+  };
+
+
+/* EDIT */
+
+document.getElementById(
+  "editButton"
+).onclick =
+  () => {
+
+    const item =
+      gachas.find(
+        gacha =>
+          gacha.id ===
+          detailId
       );
 
 
@@ -1114,141 +1268,390 @@ cards.addEventListener(
     }
 
 
-    if (item.url) {
+    closeScreen(
+      detailScreen
+    );
 
-      window.open(
-        item.url,
-        "_blank",
-        "noopener,noreferrer"
+
+    editingId =
+      item.id;
+
+
+    titleInput.value =
+      item.title || "";
+
+
+    releaseInput.value =
+      item.releaseDate || "";
+
+
+    urlInput.value =
+      item.url || "";
+
+
+    memoInput.value =
+      item.memo || "";
+
+
+    currentImage =
+      item.image || "";
+
+
+    setAuthor(
+      item.author
+    );
+
+
+    updateImageUI();
+
+
+    formScreenTitle.textContent =
+      "ガチャを編集";
+
+
+    formScreenSubtitle.textContent =
+      "ポケットの中身を更新";
+
+
+    saveButton.lastChild.textContent =
+      " 変更を保存";
+
+
+    openScreen(
+      addScreen
+    );
+
+  };
+
+
+/* DELETE */
+
+document.getElementById(
+  "deleteButton"
+).onclick =
+  () => {
+
+    const item =
+      gachas.find(
+        gacha =>
+          gacha.id ===
+          detailId
       );
 
-      return;
 
+    if (!item) {
+      return;
     }
+
+
+    const ok =
+      confirm(
+        `「${item.title}」を削除する？`
+      );
+
+
+    if (!ok) {
+      return;
+    }
+
+
+    gachas =
+      gachas.filter(
+        gacha =>
+          gacha.id !==
+          detailId
+      );
+
+
+    saveData();
+
+    render();
+
+    closeScreen(
+      detailScreen
+    );
 
 
     showToast(
-      "このガチャにはURLがまだないよ"
+      "ガチャを削除したよ"
     );
 
-  }
-);
+  };
 
 
-/* ========================================
-   KEYBOARD CARD ACCESS
-======================================== */
+/* SETTINGS */
 
-cards.addEventListener(
-  "keydown",
+function updateStats() {
+
+  document.getElementById(
+    "totalCount"
+  ).textContent =
+    gachas.length;
+
+
+  document.getElementById(
+    "yoshinoCount"
+  ).textContent =
+    gachas.filter(
+      item =>
+        item.author ===
+        "よしの"
+    ).length;
+
+
+  document.getElementById(
+    "takeuchiCount"
+  ).textContent =
+    gachas.filter(
+      item =>
+        item.author ===
+        "たけうち"
+    ).length;
+
+}
+
+
+function updateSettingsUI() {
+
+  document
+    .querySelectorAll(
+      ".settings-user-button"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "selected",
+        button.dataset.user ===
+          settings.user
+      );
+
+    });
+
+
+  document.getElementById(
+    "defaultViewSelect"
+  ).value =
+    settings.view;
+
+
+  document.getElementById(
+    "defaultSortSelect"
+  ).value =
+    settings.sort;
+
+
+  updateStats();
+
+}
+
+
+function openSettings() {
+
+  updateSettingsUI();
+
+  openScreen(
+    settingsScreen
+  );
+
+}
+
+
+document.getElementById(
+  "settingsButton"
+).onclick =
+  openSettings;
+
+
+document.getElementById(
+  "bottomSettings"
+).onclick =
+  openSettings;
+
+
+document
+  .querySelectorAll(
+    ".settings-user-button"
+  )
+  .forEach(button => {
+
+    button.onclick =
+      () => {
+
+        settings.user =
+          button.dataset.user;
+
+        saveSettings();
+
+        updateSettingsUI();
+
+      };
+
+  });
+
+
+document.getElementById(
+  "defaultViewSelect"
+).onchange =
   event => {
 
-    if (
-      event.key !== "Enter" &&
-      event.key !== " "
-    ) {
-      return;
-    }
+    settings.view =
+      event.target.value;
+
+    saveSettings();
+
+    setViewMode(
+      settings.view,
+      false
+    );
+
+  };
 
 
-    const card =
-      event.target.closest(
-        ".gacha-card"
+document.getElementById(
+  "defaultSortSelect"
+).onchange =
+  event => {
+
+    settings.sort =
+      event.target.value;
+
+    saveSettings();
+
+    sortSelect.value =
+      settings.sort;
+
+    render();
+
+  };
+
+
+document.getElementById(
+  "deleteAllButton"
+).onclick =
+  () => {
+
+    const ok =
+      confirm(
+        "登録しているガチャをすべて削除する？この操作は元に戻せません。"
       );
 
 
-    if (!card) {
+    if (!ok) {
       return;
     }
 
 
-    event.preventDefault();
+    gachas = [];
 
-    card.click();
+    saveData();
 
-  }
-);
+    render();
 
+    updateStats();
 
-/* ========================================
-   TWO PEOPLE BUTTON
-======================================== */
+    showToast(
+      "登録データをすべて削除したよ"
+    );
 
-if (allGachaButton) {
-
-  allGachaButton.addEventListener(
-    "click",
-    () => {
-
-      currentFilter =
-        "all";
+  };
 
 
-      document
-        .querySelectorAll(
-          ".filter-button"
-        )
-        .forEach(button => {
+/* CLOSE BUTTONS */
 
-          button.classList.toggle(
-            "active",
-            button.dataset.filter ===
-              "all"
-          );
-
-        });
+document.getElementById(
+  "closeAddButton"
+).onclick =
+  () =>
+    closeScreen(
+      addScreen
+    );
 
 
-      render();
+document.getElementById(
+  "cancelAddButton"
+).onclick =
+  () =>
+    closeScreen(
+      addScreen
+    );
 
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
+document.getElementById(
+  "closeDetailButton"
+).onclick =
+  () =>
+    closeScreen(
+      detailScreen
+    );
+
+
+document.getElementById(
+  "closeSettingsButton"
+).onclick =
+  () =>
+    closeScreen(
+      settingsScreen
+    );
+
+
+/* BOTTOM */
+
+document.getElementById(
+  "homeButton"
+).onclick =
+  () => {
+
+    currentFilter =
+      "all";
+
+
+    document
+      .querySelectorAll(
+        ".filter-button"
+      )
+      .forEach(button => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.filter ===
+            "all"
+        );
+
       });
 
-    }
-  );
 
-}
+    render();
 
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
 
-/* ========================================
-   SETTINGS
-======================================== */
-
-function temporarySettings() {
-
-  showToast(
-    "設定は次に作るよ"
-  );
-
-}
+  };
 
 
-if (settingsButton) {
+document.getElementById(
+  "allGachaButton"
+).onclick =
+  () => {
 
-  settingsButton.addEventListener(
-    "click",
-    temporarySettings
-  );
+    currentFilter =
+      "all";
 
-}
+    searchInput.value =
+      "";
 
+    render();
 
-if (bottomSettings) {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
 
-  bottomSettings.addEventListener(
-    "click",
-    temporarySettings
-  );
-
-}
+  };
 
 
-/* ========================================
-   TOAST
-======================================== */
+/* TOAST */
 
 let toastTimer;
 
@@ -1264,18 +1667,18 @@ function showToast(message) {
     message;
 
 
-  toast
-    .classList
-    .add("show");
+  toast.classList.add(
+    "show"
+  );
 
 
   toastTimer =
     setTimeout(
       () => {
 
-        toast
-          .classList
-          .remove("show");
+        toast.classList.remove(
+          "show"
+        );
 
       },
       1800
@@ -1284,43 +1687,16 @@ function showToast(message) {
 }
 
 
-/* ========================================
-   SAFETY
+/* START */
 
-   画面回転などでも
-   横位置を変に残さない
-======================================== */
+sortSelect.value =
+  settings.sort;
 
-window.addEventListener(
-  "orientationchange",
-  () => {
 
-    setTimeout(
-      () => {
-
-        if (
-          !addScreen
-            .classList
-            .contains("open")
-        ) {
-
-          window.scrollTo(
-            0,
-            window.scrollY
-          );
-
-        }
-
-      },
-      150
-    );
-
-  }
+setViewMode(
+  settings.view,
+  false
 );
 
-
-/* ========================================
-   START
-======================================== */
 
 render();
