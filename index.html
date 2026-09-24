@@ -19,10 +19,6 @@
 
 <div id="app" class="app">
 
-  <!-- =========================
-       HEADER
-  ========================== -->
-
   <header class="header">
 
     <div class="awning"></div>
@@ -36,13 +32,8 @@
         </div>
 
         <div>
-          <div class="logo">
-            ガチャポケット
-          </div>
-
-          <div class="logo-sub">
-            GACHA POCKET
-          </div>
+          <div class="logo">ガチャポケット</div>
+          <div class="logo-sub">GACHA POCKET</div>
         </div>
 
       </div>
@@ -57,9 +48,6 @@
       </button>
 
     </div>
-
-
-    <!-- 写真 / リスト -->
 
     <div class="view-switch">
 
@@ -86,10 +74,6 @@
   </header>
 
 
-  <!-- =========================
-       SEARCH
-  ========================== -->
-
   <section class="search-row">
 
     <div class="search-box">
@@ -109,17 +93,12 @@
       id="addButton"
       class="add-button"
       type="button"
-      aria-label="ガチャを追加"
     >
       ＋
     </button>
 
   </section>
 
-
-  <!-- =========================
-       FILTER
-  ========================== -->
 
   <section class="filter-row">
 
@@ -151,25 +130,13 @@
       id="sortSelect"
       class="sort-select"
     >
-      <option value="new">
-        追加順
-      </option>
-
-      <option value="release">
-        発売日順
-      </option>
-
-      <option value="title">
-        タイトル順
-      </option>
+      <option value="new">追加順</option>
+      <option value="release">発売日順</option>
+      <option value="title">タイトル順</option>
     </select>
 
   </section>
 
-
-  <!-- =========================
-       CONTENT
-  ========================== -->
 
   <main class="content">
 
@@ -177,7 +144,6 @@
       id="cards"
       class="cards"
     ></section>
-
 
     <section
       id="empty"
@@ -189,9 +155,7 @@
         <span></span>
       </div>
 
-      <strong>
-        まだ入ってないよ
-      </strong>
+      <strong>まだ入ってないよ</strong>
 
       <p>
         ＋から気になるガチャを<br>
@@ -203,13 +167,10 @@
   </main>
 
 
-  <!-- =========================
-       BOTTOM NAV
-  ========================== -->
-
   <nav class="bottom-nav">
 
     <button
+      id="homeButton"
       class="nav-button active"
       type="button"
     >
@@ -240,10 +201,9 @@
 </div>
 
 
-<!-- ==================================================
-     ADD SCREEN
-     ホームとは独立した固定画面に変更
-=================================================== -->
+<!-- =========================
+     追加・編集画面
+========================= -->
 
 <div
   id="addScreen"
@@ -255,33 +215,27 @@
 
     <div class="awning"></div>
 
-
-    <!-- 追加画面ヘッダー -->
-
     <header class="form-header">
 
       <button
         id="closeAddButton"
         class="back-button"
         type="button"
-        aria-label="戻る"
       >
         ‹
       </button>
 
-
       <div class="form-header-title">
 
-        <h1>
+        <h1 id="formScreenTitle">
           ガチャを追加
         </h1>
 
-        <p>
+        <p id="formScreenSubtitle">
           ポケットに入れておこう
         </p>
 
       </div>
-
 
       <div class="capsule-mark form-capsule">
         <span></span>
@@ -290,16 +244,10 @@
     </header>
 
 
-    <!-- =========================
-         FORM
-    ========================== -->
-
     <form
       id="addForm"
       class="gacha-form"
     >
-
-      <!-- 入力した人 -->
 
       <div class="form-field">
 
@@ -332,18 +280,13 @@
       </div>
 
 
-      <!-- 1 タイトル -->
-
       <div class="form-field">
 
         <label
           class="field-title"
           for="titleInput"
         >
-          <span class="number">
-            1
-          </span>
-
+          <span class="number">1</span>
           タイトル
         </label>
 
@@ -357,41 +300,30 @@
       </div>
 
 
-      <!-- 2 発売日 -->
-
       <div class="form-field">
 
         <label
           class="field-title"
           for="releaseInput"
         >
-          <span class="number">
-            2
-          </span>
-
+          <span class="number">2</span>
           発売日予定
         </label>
 
         <input
           id="releaseInput"
+          class="date-input"
           type="date"
         >
 
       </div>
 
 
-      <!-- 3 画像 -->
-
       <div class="form-field">
 
         <div class="field-title">
-
-          <span class="number">
-            3
-          </span>
-
+          <span class="number">3</span>
           画像
-
         </div>
 
 
@@ -410,22 +342,36 @@
               まだ入ってないよ
             </div>
 
-            <p>
-              写真を選んでね
-            </p>
+            <p>写真を選んでね</p>
 
           </div>
 
 
-          <img
-            id="imagePreview"
-            class="image-preview"
-            alt="選択した画像"
+          <div
+            id="imageSelectedArea"
+            class="image-selected-area"
             hidden
           >
 
+            <img
+              id="imagePreview"
+              class="image-preview"
+              alt="選択した画像"
+            >
+
+            <button
+              id="removeImageButton"
+              class="remove-image-button"
+              type="button"
+            >
+              画像を削除して選び直す
+            </button>
+
+          </div>
+
 
           <label
+            id="selectImageButton"
             class="select-image-button"
             for="imageInput"
           >
@@ -446,18 +392,13 @@
       </div>
 
 
-      <!-- 4 URL -->
-
       <div class="form-field">
 
         <label
           class="field-title"
           for="urlInput"
         >
-          <span class="number">
-            4
-          </span>
-
+          <span class="number">4</span>
           URL
         </label>
 
@@ -471,18 +412,13 @@
       </div>
 
 
-      <!-- 5 メモ -->
-
       <div class="form-field">
 
         <label
           class="field-title"
           for="memoInput"
         >
-          <span class="number">
-            5
-          </span>
-
+          <span class="number">5</span>
           メモ
         </label>
 
@@ -496,6 +432,7 @@
 
 
       <button
+        id="saveButton"
         class="save-button"
         type="submit"
       >
@@ -520,8 +457,308 @@
 
 
 <!-- =========================
-     TOAST
-========================== -->
+     詳細画面
+========================= -->
+
+<div
+  id="detailScreen"
+  class="screen-overlay"
+  aria-hidden="true"
+>
+
+  <div class="form-screen detail-screen">
+
+    <div class="awning"></div>
+
+    <header class="form-header">
+
+      <button
+        id="closeDetailButton"
+        class="back-button"
+        type="button"
+      >
+        ‹
+      </button>
+
+      <div class="form-header-title">
+        <h1>ガチャ詳細</h1>
+        <p>ポケットの中身</p>
+      </div>
+
+      <div class="capsule-mark form-capsule">
+        <span></span>
+      </div>
+
+    </header>
+
+
+    <main class="detail-content">
+
+      <div
+        id="detailImageArea"
+        class="detail-image-area"
+      ></div>
+
+
+      <div class="detail-heading-row">
+
+        <span
+          id="detailAuthor"
+          class="detail-author"
+        ></span>
+
+        <span
+          id="detailRelease"
+          class="detail-release"
+        ></span>
+
+      </div>
+
+
+      <h2
+        id="detailTitle"
+        class="detail-title"
+      ></h2>
+
+
+      <section class="detail-block">
+
+        <div class="detail-label">
+          発売日予定
+        </div>
+
+        <div
+          id="detailDate"
+          class="detail-value"
+        ></div>
+
+      </section>
+
+
+      <section class="detail-block">
+
+        <div class="detail-label">
+          メモ
+        </div>
+
+        <div
+          id="detailMemo"
+          class="detail-value detail-memo"
+        ></div>
+
+      </section>
+
+
+      <section class="detail-block">
+
+        <div class="detail-label">
+          URL
+        </div>
+
+        <div
+          id="detailUrlText"
+          class="detail-url-text"
+        ></div>
+
+      </section>
+
+
+      <button
+        id="openUrlButton"
+        class="detail-primary-button"
+        type="button"
+      >
+        URLを開く
+      </button>
+
+
+      <button
+        id="editButton"
+        class="detail-edit-button"
+        type="button"
+      >
+        編集する
+      </button>
+
+
+      <button
+        id="deleteButton"
+        class="detail-delete-button"
+        type="button"
+      >
+        このガチャを削除
+      </button>
+
+    </main>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     設定画面
+========================= -->
+
+<div
+  id="settingsScreen"
+  class="screen-overlay"
+  aria-hidden="true"
+>
+
+  <div class="form-screen">
+
+    <div class="awning"></div>
+
+    <header class="form-header">
+
+      <button
+        id="closeSettingsButton"
+        class="back-button"
+        type="button"
+      >
+        ‹
+      </button>
+
+      <div class="form-header-title">
+        <h1>設定</h1>
+        <p>ガチャポケットを自分好みに</p>
+      </div>
+
+      <div class="capsule-mark form-capsule">
+        <span></span>
+      </div>
+
+    </header>
+
+
+    <main class="settings-content">
+
+      <section class="settings-card">
+
+        <div class="settings-title">
+          あなたはどっち？
+        </div>
+
+        <p class="settings-description">
+          新しく登録するときの初期選択に使います。
+        </p>
+
+        <div class="settings-choice">
+
+          <button
+            class="settings-user-button"
+            data-user="よしの"
+            type="button"
+          >
+            よしの
+          </button>
+
+          <button
+            class="settings-user-button"
+            data-user="たけうち"
+            type="button"
+          >
+            たけうち
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <section class="settings-card">
+
+        <label
+          class="settings-title"
+          for="defaultViewSelect"
+        >
+          最初の表示
+        </label>
+
+        <select
+          id="defaultViewSelect"
+          class="settings-select"
+        >
+          <option value="photo">
+            写真表示
+          </option>
+
+          <option value="list">
+            リスト表示
+          </option>
+        </select>
+
+      </section>
+
+
+      <section class="settings-card">
+
+        <label
+          class="settings-title"
+          for="defaultSortSelect"
+        >
+          最初の並び順
+        </label>
+
+        <select
+          id="defaultSortSelect"
+          class="settings-select"
+        >
+          <option value="new">
+            追加順
+          </option>
+
+          <option value="release">
+            発売日順
+          </option>
+
+          <option value="title">
+            タイトル順
+          </option>
+        </select>
+
+      </section>
+
+
+      <section class="settings-card stats-card">
+
+        <div>
+          <span>登録しているガチャ</span>
+          <strong id="totalCount">0</strong>
+        </div>
+
+        <div>
+          <span>よしの</span>
+          <strong id="yoshinoCount">0</strong>
+        </div>
+
+        <div>
+          <span>たけうち</span>
+          <strong id="takeuchiCount">0</strong>
+        </div>
+
+      </section>
+
+
+      <button
+        id="deleteAllButton"
+        class="danger-button"
+        type="button"
+      >
+        すべての登録データを削除
+      </button>
+
+      <p class="settings-note">
+        ※ 現在の登録データは、この端末のSafariに保存されています。
+      </p>
+
+    </main>
+
+  </div>
+
+</div>
+
 
 <div
   id="toast"
