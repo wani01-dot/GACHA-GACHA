@@ -40,11 +40,11 @@
 
       <button
         id="settingsButton"
-        class="icon-button"
+        class="settings-header-button"
         type="button"
-        aria-label="設定"
       >
-        <span class="menu-lines"></span>
+        <span class="setting-mark"></span>
+        <span>設定</span>
       </button>
 
     </div>
@@ -93,6 +93,7 @@
       id="addButton"
       class="add-button"
       type="button"
+      aria-label="ガチャを追加"
     >
       ＋
     </button>
@@ -131,7 +132,7 @@
       class="sort-select"
     >
       <option value="new">追加順</option>
-      <option value="release">発売日順</option>
+      <option value="release">発売予定順</option>
       <option value="title">タイトル順</option>
     </select>
 
@@ -166,44 +167,12 @@
 
   </main>
 
-
-  <nav class="bottom-nav">
-
-    <button
-      id="homeButton"
-      class="nav-button active"
-      type="button"
-    >
-      <span class="nav-home-icon"></span>
-      <b>ホーム</b>
-    </button>
-
-    <button
-      id="allGachaButton"
-      class="nav-button"
-      type="button"
-    >
-      <span class="nav-people-icon"></span>
-      <b>ふたりのガチャ</b>
-    </button>
-
-    <button
-      id="bottomSettings"
-      class="nav-button"
-      type="button"
-    >
-      <span class="nav-setting-icon"></span>
-      <b>設定</b>
-    </button>
-
-  </nav>
-
 </div>
 
 
-<!-- =========================
+<!-- =====================================
      追加・編集画面
-========================= -->
+===================================== -->
 
 <div
   id="addScreen"
@@ -221,6 +190,7 @@
         id="closeAddButton"
         class="back-button"
         type="button"
+        aria-label="戻る"
       >
         ‹
       </button>
@@ -300,24 +270,92 @@
       </div>
 
 
+      <!-- 発売予定 -->
+
       <div class="form-field">
 
-        <label
-          class="field-title"
-          for="releaseInput"
-        >
+        <div class="field-title">
           <span class="number">2</span>
-          発売日予定
-        </label>
+          発売予定
+        </div>
 
-        <input
-          id="releaseInput"
-          class="date-input"
-          type="date"
-        >
+        <div class="release-box">
+
+          <div
+            id="releaseSelectArea"
+            class="release-select-area"
+          >
+
+            <label class="release-select-box">
+
+              <span>年</span>
+
+              <select id="releaseYear">
+                <option value="">年を選択</option>
+              </select>
+
+            </label>
+
+
+            <label class="release-select-box">
+
+              <span>月</span>
+
+              <select id="releaseMonth">
+
+                <option value="">
+                  月を選択
+                </option>
+
+                <option value="1">1月</option>
+                <option value="2">2月</option>
+                <option value="3">3月</option>
+                <option value="4">4月</option>
+                <option value="5">5月</option>
+                <option value="6">6月</option>
+                <option value="7">7月</option>
+                <option value="8">8月</option>
+                <option value="9">9月</option>
+                <option value="10">10月</option>
+                <option value="11">11月</option>
+                <option value="12">12月</option>
+
+              </select>
+
+            </label>
+
+          </div>
+
+
+          <label class="undecided-option">
+
+            <input
+              id="releaseUndecided"
+              type="checkbox"
+            >
+
+            <span class="custom-check"></span>
+
+            <span>
+              発売日未定
+            </span>
+
+          </label>
+
+
+          <div
+            id="releasePreview"
+            class="release-preview"
+          >
+            発売予定を選んでね
+          </div>
+
+        </div>
 
       </div>
 
+
+      <!-- 画像 -->
 
       <div class="form-field">
 
@@ -392,6 +430,8 @@
       </div>
 
 
+      <!-- URL -->
+
       <div class="form-field">
 
         <label
@@ -411,6 +451,8 @@
 
       </div>
 
+
+      <!-- メモ -->
 
       <div class="form-field">
 
@@ -456,9 +498,9 @@
 </div>
 
 
-<!-- =========================
+<!-- =====================================
      詳細画面
-========================= -->
+===================================== -->
 
 <div
   id="detailScreen"
@@ -481,8 +523,15 @@
       </button>
 
       <div class="form-header-title">
-        <h1>ガチャ詳細</h1>
-        <p>ポケットの中身</p>
+
+        <h1>
+          ガチャ詳細
+        </h1>
+
+        <p>
+          ポケットの中身
+        </p>
+
       </div>
 
       <div class="capsule-mark form-capsule">
@@ -524,7 +573,7 @@
       <section class="detail-block">
 
         <div class="detail-label">
-          発売日予定
+          発売予定
         </div>
 
         <div
@@ -596,9 +645,9 @@
 </div>
 
 
-<!-- =========================
+<!-- =====================================
      設定画面
-========================= -->
+===================================== -->
 
 <div
   id="settingsScreen"
@@ -610,20 +659,28 @@
 
     <div class="awning"></div>
 
-    <header class="form-header">
+    <header class="settings-page-header">
 
       <button
         id="closeSettingsButton"
-        class="back-button"
+        class="home-back-button"
         type="button"
       >
-        ‹
+        <span class="home-back-icon"></span>
+        ホーム
       </button>
 
-      <div class="form-header-title">
+
+      <div class="settings-page-title">
+
         <h1>設定</h1>
-        <p>ガチャポケットを自分好みに</p>
+
+        <p>
+          ガチャポケットを自分好みに
+        </p>
+
       </div>
+
 
       <div class="capsule-mark form-capsule">
         <span></span>
@@ -680,6 +737,7 @@
           id="defaultViewSelect"
           class="settings-select"
         >
+
           <option value="photo">
             写真表示
           </option>
@@ -687,6 +745,7 @@
           <option value="list">
             リスト表示
           </option>
+
         </select>
 
       </section>
@@ -705,17 +764,19 @@
           id="defaultSortSelect"
           class="settings-select"
         >
+
           <option value="new">
             追加順
           </option>
 
           <option value="release">
-            発売日順
+            発売予定順
           </option>
 
           <option value="title">
             タイトル順
           </option>
+
         </select>
 
       </section>
@@ -724,7 +785,7 @@
       <section class="settings-card stats-card">
 
         <div>
-          <span>登録しているガチャ</span>
+          <span>登録ガチャ</span>
           <strong id="totalCount">0</strong>
         </div>
 
@@ -748,6 +809,7 @@
       >
         すべての登録データを削除
       </button>
+
 
       <p class="settings-note">
         ※ 現在の登録データは、この端末のSafariに保存されています。
