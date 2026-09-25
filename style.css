@@ -300,6 +300,8 @@ select {
 
   font-size: 11px;
   font-weight: 950;
+
+  cursor: pointer;
 }
 
 .setting-mark {
@@ -867,21 +869,20 @@ select {
 .form-screen {
   position: absolute;
 
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
 
-  width: 100%;
-  max-width: 520px;
-
+  width: min(100%,520px);
   height: 100%;
 
-  margin: 0 auto;
+  transform: translateX(-50%);
 
   overflow-x: hidden;
   overflow-y: auto;
 
   -webkit-overflow-scrolling: touch;
 
-  overscroll-behavior-x: none;
   overscroll-behavior-y: contain;
 
   touch-action: pan-y;
@@ -1189,7 +1190,19 @@ select {
 
   color: #3f2a1c;
 
+  -webkit-text-fill-color: #3f2a1c;
+
+  opacity: 1;
+
   font-weight: 850;
+}
+
+.release-select-box select:disabled {
+  color: #7e6b5c;
+
+  -webkit-text-fill-color: #7e6b5c;
+
+  opacity: .65;
 }
 
 .undecided-option {
@@ -1652,22 +1665,24 @@ select {
 
   width: 100%;
 
-  min-height: 84px;
+  min-height: 96px;
 
   display: grid;
 
   grid-template-columns:
-    83px minmax(0,1fr) 45px;
+    82px minmax(0,1fr) 82px;
 
   align-items: center;
 
-  gap: 7px;
+  gap: 8px;
 
-  padding: 10px 13px;
+  padding: 10px 12px;
 
-  border-bottom: 1px solid #d3b98d;
+  border-bottom:
+    1px solid #d3b98d;
 
-  background: rgba(246,228,194,.97);
+  background:
+    rgba(246,228,194,.97);
 
   -webkit-backdrop-filter:
     blur(8px);
@@ -1676,28 +1691,8 @@ select {
     blur(8px);
 }
 
-.settings-page-title {
-  min-width: 0;
-
-  text-align: center;
-}
-
-.settings-page-title h1 {
-  margin: 0;
-
-  font-size: 19px;
-  font-weight: 950;
-}
-
-.settings-page-title p {
-  margin: 4px 0 0;
-
-  color: #896b51;
-
-  font-size: 9px;
-}
-
 .home-back-button {
+  width: 82px;
   min-width: 0;
   height: 40px;
 
@@ -1706,9 +1701,9 @@ select {
   align-items: center;
   justify-content: center;
 
-  gap: 5px;
+  gap: 4px;
 
-  padding: 0 9px;
+  padding: 0 8px;
 
   border: 1px solid #d5bc94;
   border-radius: 20px;
@@ -1719,20 +1714,83 @@ select {
 
   font-size: 11px;
   font-weight: 950;
+
+  cursor: pointer;
 }
 
 .home-back-icon {
-  position: relative;
+  width: 9px;
+  height: 9px;
 
-  width: 11px;
-  height: 11px;
-
-  display: block;
+  flex: 0 0 9px;
 
   border-left: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
 
   transform: rotate(45deg);
+}
+
+.settings-page-title {
+  min-width: 0;
+
+  text-align: center;
+}
+
+.settings-title-line {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+}
+
+.settings-capsule {
+  width: 32px;
+  height: 32px;
+
+  border-width: 2px;
+
+  box-shadow:
+    inset 0 0 0 2px #fff4da;
+}
+
+.settings-capsule::before {
+  top: 6px;
+  left: 7px;
+
+  width: 8px;
+  height: 5px;
+}
+
+.settings-capsule span {
+  left: 3px;
+  right: 3px;
+
+  height: 3px;
+}
+
+.settings-page-title h1 {
+  margin: 0;
+
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.settings-page-title p {
+  margin: 5px 0 0;
+
+  color: #896b51;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.settings-header-spacer {
+  width: 82px;
+  height: 40px;
 }
 
 
@@ -1804,6 +1862,9 @@ select {
 
 .settings-user-button.selected {
   border-color: var(--brown);
+
+  box-shadow:
+    inset 0 0 0 2px #fff;
 }
 
 .settings-select {
@@ -1821,6 +1882,11 @@ select {
   background: #fffdf8;
 
   color: var(--brown);
+
+  -webkit-text-fill-color:
+    var(--brown);
+
+  opacity: 1;
 }
 
 .stats-card {
@@ -1894,10 +1960,12 @@ select {
   z-index: 200;
 
   left: 50%;
+
   bottom:
     calc(25px + env(safe-area-inset-bottom));
 
-  max-width: calc(100% - 40px);
+  max-width:
+    calc(100% - 40px);
 
   padding: 11px 17px;
 
@@ -1948,11 +2016,39 @@ select {
 
   .settings-page-header {
     grid-template-columns:
-      76px minmax(0,1fr) 42px;
+      72px minmax(0,1fr) 72px;
+
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .home-back-button {
-    padding: 0 7px;
+    width: 72px;
+
+    padding: 0 5px;
+
+    font-size: 10px;
+  }
+
+  .settings-header-spacer {
+    width: 72px;
+  }
+
+  .settings-capsule {
+    width: 28px;
+    height: 28px;
+  }
+
+  .settings-title-line {
+    gap: 5px;
+  }
+
+  .settings-page-title h1 {
+    font-size: 18px;
+  }
+
+  .settings-page-title p {
+    font-size: 8px;
   }
 
 }
