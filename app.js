@@ -1,14 +1,16 @@
 /* =========================================
-   ガチャポケット app.js
-   iPhone / GitHub Pages 対応版
+   ガチャポケット
 ========================================= */
 
-const STORAGE_KEY = "gacha-pocket-main-v2";
-const SETTINGS_KEY = "gacha-pocket-settings-v1";
+const STORAGE_KEY =
+  "gacha-pocket-main-v2";
+
+const SETTINGS_KEY =
+  "gacha-pocket-settings-v1";
 
 
 /* =========================================
-   初期データ
+   SAMPLE
 ========================================= */
 
 const sampleData = [
@@ -53,32 +55,42 @@ const defaultSettings = {
 
 
 /* =========================================
-   状態
+   STATE
 ========================================= */
 
-let gachas = loadData();
+let gachas =
+  loadData();
 
-let settings = loadSettings();
+let settings =
+  loadSettings();
 
-let currentFilter = "all";
+let currentFilter =
+  "all";
 
-let currentAuthor = settings.user;
+let currentAuthor =
+  settings.user;
 
-let currentImage = "";
+let currentImage =
+  "";
 
-let viewMode = settings.view;
+let viewMode =
+  settings.view;
 
-let editingId = null;
+let editingId =
+  null;
 
-let detailId = null;
+let detailId =
+  null;
 
-let savedScrollY = 0;
+let savedScrollY =
+  0;
 
-let toastTimer = null;
+let toastTimer =
+  null;
 
 
 /* =========================================
-   DOM取得
+   DOM
 ========================================= */
 
 const cards =
@@ -102,6 +114,10 @@ const listButton =
 const addButton =
   document.getElementById("addButton");
 
+const settingsButton =
+  document.getElementById("settingsButton");
+
+
 const addScreen =
   document.getElementById("addScreen");
 
@@ -111,14 +127,29 @@ const detailScreen =
 const settingsScreen =
   document.getElementById("settingsScreen");
 
+
 const addForm =
   document.getElementById("addForm");
 
 const titleInput =
   document.getElementById("titleInput");
 
-const releaseInput =
-  document.getElementById("releaseInput");
+
+const releaseYear =
+  document.getElementById("releaseYear");
+
+const releaseMonth =
+  document.getElementById("releaseMonth");
+
+const releaseUndecided =
+  document.getElementById("releaseUndecided");
+
+const releaseSelectArea =
+  document.getElementById("releaseSelectArea");
+
+const releasePreview =
+  document.getElementById("releasePreview");
+
 
 const imageInput =
   document.getElementById("imageInput");
@@ -138,11 +169,13 @@ const selectImageButton =
 const removeImageButton =
   document.getElementById("removeImageButton");
 
+
 const urlInput =
   document.getElementById("urlInput");
 
 const memoInput =
   document.getElementById("memoInput");
+
 
 const formScreenTitle =
   document.getElementById("formScreenTitle");
@@ -158,7 +191,7 @@ const toast =
 
 
 /* =========================================
-   localStorage
+   STORAGE
 ========================================= */
 
 function loadData() {
@@ -166,7 +199,9 @@ function loadData() {
   try {
 
     const saved =
-      localStorage.getItem(STORAGE_KEY);
+      localStorage.getItem(
+        STORAGE_KEY
+      );
 
     if (!saved) {
       return [...sampleData];
@@ -175,18 +210,11 @@ function loadData() {
     const parsed =
       JSON.parse(saved);
 
-    if (!Array.isArray(parsed)) {
-      return [...sampleData];
-    }
+    return Array.isArray(parsed)
+      ? parsed
+      : [...sampleData];
 
-    return parsed;
-
-  } catch (error) {
-
-    console.error(
-      "データ読み込みエラー",
-      error
-    );
+  } catch {
 
     return [...sampleData];
 
@@ -208,10 +236,7 @@ function saveData() {
 
   } catch (error) {
 
-    console.error(
-      "保存エラー",
-      error
-    );
+    console.error(error);
 
     alert(
       "保存できませんでした。画像の容量が大きすぎる可能性があります。"
@@ -234,9 +259,11 @@ function loadSettings() {
       );
 
     if (!saved) {
+
       return {
         ...defaultSettings
       };
+
     }
 
     return {
@@ -264,20 +291,13 @@ function saveSettings() {
       JSON.stringify(settings)
     );
 
-  } catch (error) {
-
-    console.error(
-      "設定保存エラー",
-      error
-    );
-
-  }
+  } catch {}
 
 }
 
 
 /* =========================================
-   共通
+   ESCAPE
 ========================================= */
 
 function escapeHTML(value) {
@@ -298,33 +318,316 @@ function escapeHTML(value) {
 }
 
 
-function formatDate(date) {
+/* =========================================
+   発売予定
+========================================= */
 
-  if (!date) {
+/*
+ 新データ：
+
+ releaseStatus:
+   "month"
+   "undecided"
+
+ releaseYear:
+   2026
+
+ releaseMonth:
+   11
+
+ 旧データの
+ releaseDate: "2026-11-13"
+ も読み取れる。
+*/
+
+
+function getReleaseInfo(item) {
+
+  /*
+   発売日未定
+  */
+
+  if (
+    item.releaseStatus ===
+    "undecided"
+  ) {
+
+    return {
+      status: "undecided",
+      year: "",
+      month: ""
+    };
+
+  }
+
+
+  /*
+   新形式
+  */
+
+  if (
+    item.releaseYear &&
+    item.releaseMonth
+  ) {
+
+    return {
+      status: "month",
+      year:
+        Number(item.releaseYear),
+
+      month:
+        Number(item.releaseMonth)
+    };
+
+  }
+
+
+  /*
+   旧形式を変換
+  */
+
+  if (item.releaseDate) {
+
+    const parts =
+      String(item.releaseDate)
+        .split("-");
+
+
+    if (
+      parts.length >= 2
+    ) {
+
+      return {
+        status: "month",
+
+        year:
+          Number(parts[0]),
+
+        month:
+          Number(parts[1])
+      };
+
+    }
+
+  }
+
+
+  /*
+   何も登録されていない旧データ
+  */
+
+  return {
+    status: "undecided",
+    year: "",
+    month: ""
+  };
+
+}
+
+
+function formatRelease(item) {
+
+  const info =
+    getReleaseInfo(item);
+
+
+  if (
+    info.status ===
+    "undecided"
+  ) {
+
     return "発売日未定";
+
   }
 
-  const parts =
-    date.split("-");
 
-  if (parts.length !== 3) {
-    return date;
+  if (
+    info.year &&
+    info.month
+  ) {
+
+    return (
+      info.year +
+      "年" +
+      info.month +
+      "月頃発売"
+    );
+
   }
+
+
+  return "発売日未定";
+
+}
+
+
+function getReleaseSortValue(item) {
+
+  const info =
+    getReleaseInfo(item);
+
+
+  if (
+    info.status ===
+    "undecided"
+  ) {
+
+    return 999999;
+
+  }
+
 
   return (
-    Number(parts[0]) +
-    "年" +
-    Number(parts[1]) +
-    "月" +
-    Number(parts[2]) +
-    "日"
+    Number(info.year) * 100
+    +
+    Number(info.month)
   );
 
 }
 
 
 /* =========================================
-   画像なし表示
+   年選択を生成
+========================================= */
+
+function createYearOptions() {
+
+  if (!releaseYear) {
+    return;
+  }
+
+
+  const currentYear =
+    new Date().getFullYear();
+
+
+  releaseYear.innerHTML =
+    `
+      <option value="">
+        年を選択
+      </option>
+    `;
+
+
+  /*
+    前年から10年先まで
+  */
+
+  for (
+    let year =
+      currentYear - 1;
+
+    year <=
+      currentYear + 10;
+
+    year++
+  ) {
+
+    const option =
+      document.createElement(
+        "option"
+      );
+
+
+    option.value =
+      String(year);
+
+    option.textContent =
+      `${year}年`;
+
+
+    releaseYear.appendChild(
+      option
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   発売予定入力UI
+========================================= */
+
+function updateReleaseUI() {
+
+  const undecided =
+    releaseUndecided &&
+    releaseUndecided.checked;
+
+
+  if (releaseSelectArea) {
+
+    releaseSelectArea.classList.toggle(
+      "disabled",
+      undecided
+    );
+
+  }
+
+
+  if (
+    releaseYear
+    &&
+    releaseMonth
+  ) {
+
+    releaseYear.disabled =
+      undecided;
+
+    releaseMonth.disabled =
+      undecided;
+
+  }
+
+
+  if (!releasePreview) {
+    return;
+  }
+
+
+  if (undecided) {
+
+    releasePreview.textContent =
+      "発売日未定";
+
+    return;
+
+  }
+
+
+  const year =
+    releaseYear
+      ? releaseYear.value
+      : "";
+
+
+  const month =
+    releaseMonth
+      ? releaseMonth.value
+      : "";
+
+
+  if (
+    year &&
+    month
+  ) {
+
+    releasePreview.textContent =
+      `${year}年${Number(month)}月頃発売`;
+
+  } else {
+
+    releasePreview.textContent =
+      "発売予定を選んでね";
+
+  }
+
+}
+
+
+/* =========================================
+   PLACEHOLDER
 ========================================= */
 
 function placeholderHTML(
@@ -362,7 +665,7 @@ function placeholderHTML(
 
 
 /* =========================================
-   カード
+   CARD
 ========================================= */
 
 function createCard(item) {
@@ -375,6 +678,7 @@ function createCard(item) {
 
   const imageHTML =
     item.image
+
       ? `
         <img
           class="gacha-image"
@@ -382,6 +686,7 @@ function createCard(item) {
           alt=""
         >
       `
+
       : placeholderHTML();
 
 
@@ -412,9 +717,7 @@ function createCard(item) {
 
         <div class="card-date">
           ${escapeHTML(
-            formatDate(
-              item.releaseDate
-            )
+            formatRelease(item)
           )}
         </div>
 
@@ -435,7 +738,7 @@ function createCard(item) {
 
 
 /* =========================================
-   一覧描画
+   RENDER
 ========================================= */
 
 function render() {
@@ -443,6 +746,7 @@ function render() {
   if (!cards) {
     return;
   }
+
 
   const keyword =
     searchInput
@@ -458,28 +762,34 @@ function render() {
       const authorMatch =
         currentFilter === "all"
         ||
-        item.author === currentFilter;
+        item.author ===
+          currentFilter;
 
 
       const searchText =
         [
           item.title,
           item.memo,
-          item.author
+          item.author,
+          formatRelease(item)
         ]
         .join(" ")
         .toLowerCase();
 
 
       return (
-        authorMatch &&
-        searchText.includes(keyword)
+        authorMatch
+        &&
+        searchText.includes(
+          keyword
+        )
       );
 
     });
 
 
-  result = [...result];
+  result =
+    [...result];
 
 
   const sortValue =
@@ -488,38 +798,46 @@ function render() {
       : settings.sort;
 
 
-  if (sortValue === "new") {
+  if (
+    sortValue === "new"
+  ) {
 
     result.sort(
-      (a, b) =>
-        Number(b.createdAt || 0)
+      (a,b) =>
+        Number(
+          b.createdAt || 0
+        )
         -
-        Number(a.createdAt || 0)
-    );
-
-  }
-
-
-  if (sortValue === "release") {
-
-    result.sort(
-      (a, b) =>
-        (
-          a.releaseDate ||
-          "9999-99-99"
-        ).localeCompare(
-          b.releaseDate ||
-          "9999-99-99"
+        Number(
+          a.createdAt || 0
         )
     );
 
   }
 
 
-  if (sortValue === "title") {
+  if (
+    sortValue ===
+    "release"
+  ) {
 
     result.sort(
-      (a, b) =>
+      (a,b) =>
+        getReleaseSortValue(a)
+        -
+        getReleaseSortValue(b)
+    );
+
+  }
+
+
+  if (
+    sortValue ===
+    "title"
+  ) {
+
+    result.sort(
+      (a,b) =>
         String(a.title)
           .localeCompare(
             String(b.title),
@@ -553,7 +871,7 @@ function render() {
 
 
 /* =========================================
-   写真 / リスト
+   VIEW MODE
 ========================================= */
 
 function setViewMode(
@@ -561,7 +879,8 @@ function setViewMode(
   save = true
 ) {
 
-  viewMode = mode;
+  viewMode =
+    mode;
 
 
   if (photoButton) {
@@ -596,7 +915,8 @@ function setViewMode(
 
   if (save) {
 
-    settings.view = mode;
+    settings.view =
+      mode;
 
     saveSettings();
 
@@ -606,7 +926,7 @@ function setViewMode(
 
 
 /* =========================================
-   オーバーレイ
+   BACKGROUND LOCK
 ========================================= */
 
 function lockBackground() {
@@ -615,7 +935,9 @@ function lockBackground() {
     document.body.style.position ===
     "fixed"
   ) {
+
     return;
+
   }
 
 
@@ -643,11 +965,20 @@ function lockBackground() {
 
 function unlockBackground() {
 
-  document.body.style.position = "";
-  document.body.style.top = "";
-  document.body.style.left = "";
-  document.body.style.right = "";
-  document.body.style.width = "";
+  document.body.style.position =
+    "";
+
+  document.body.style.top =
+    "";
+
+  document.body.style.left =
+    "";
+
+  document.body.style.right =
+    "";
+
+  document.body.style.width =
+    "";
 
 
   window.scrollTo(
@@ -668,7 +999,9 @@ function openScreen(screen) {
   lockBackground();
 
 
-  screen.classList.add("open");
+  screen.classList.add(
+    "open"
+  );
 
 
   screen.setAttribute(
@@ -687,7 +1020,10 @@ function openScreen(screen) {
 
     requestAnimationFrame(
       () => {
-        inner.scrollTop = 0;
+
+        inner.scrollTop =
+          0;
+
       }
     );
 
@@ -726,7 +1062,9 @@ function closeScreen(
 
 
     if (!anotherOpen) {
+
       unlockBackground();
+
     }
 
   }
@@ -735,7 +1073,7 @@ function closeScreen(
 
 
 /* =========================================
-   入力者
+   AUTHOR
 ========================================= */
 
 function setAuthor(author) {
@@ -762,7 +1100,7 @@ function setAuthor(author) {
 
 
 /* =========================================
-   画像UI
+   IMAGE UI
 ========================================= */
 
 function updateImageUI() {
@@ -776,39 +1114,39 @@ function updateImageUI() {
 
   if (imagePlaceholder) {
 
+    imagePlaceholder.hidden =
+      hasImage;
+
     imagePlaceholder.style.display =
       hasImage
         ? "none"
         : "flex";
-
-    imagePlaceholder.hidden =
-      hasImage;
 
   }
 
 
   if (imageSelectedArea) {
 
+    imageSelectedArea.hidden =
+      !hasImage;
+
     imageSelectedArea.style.display =
       hasImage
         ? "block"
         : "none";
-
-    imageSelectedArea.hidden =
-      !hasImage;
 
   }
 
 
   if (selectImageButton) {
 
+    selectImageButton.hidden =
+      hasImage;
+
     selectImageButton.style.display =
       hasImage
         ? "none"
         : "flex";
-
-    selectImageButton.hidden =
-      hasImage;
 
   }
 
@@ -840,7 +1178,7 @@ function updateImageUI() {
 
 
 /* =========================================
-   画像圧縮
+   IMAGE COMPRESSION
 ========================================= */
 
 function compressImage(
@@ -855,8 +1193,11 @@ function compressImage(
   image.onload =
     function () {
 
-      const MAX_WIDTH = 900;
-      const MAX_HEIGHT = 900;
+      const MAX_WIDTH =
+        900;
+
+      const MAX_HEIGHT =
+        900;
 
 
       let width =
@@ -900,7 +1241,9 @@ function compressImage(
 
 
       const context =
-        canvas.getContext("2d");
+        canvas.getContext(
+          "2d"
+        );
 
 
       context.drawImage(
@@ -912,40 +1255,29 @@ function compressImage(
       );
 
 
-      let compressed;
-
-
       try {
 
-        compressed =
+        callback(
           canvas.toDataURL(
             "image/jpeg",
-            0.72
-          );
+            .72
+          )
+        );
 
       } catch {
 
-        compressed =
-          dataURL;
+        callback(
+          dataURL
+        );
 
       }
-
-
-      callback(
-        compressed
-      );
 
     };
 
 
   image.onerror =
-    function () {
-
-      callback(
-        dataURL
-      );
-
-    };
+    () =>
+      callback(dataURL);
 
 
   image.src =
@@ -955,7 +1287,7 @@ function compressImage(
 
 
 /* =========================================
-   画像選択
+   IMAGE SELECT
 ========================================= */
 
 if (imageInput) {
@@ -984,7 +1316,8 @@ if (imageInput) {
           "画像ファイルを選んでね"
         );
 
-        this.value = "";
+        this.value =
+          "";
 
         return;
 
@@ -1003,11 +1336,7 @@ if (imageInput) {
 
 
           /*
-            まず選択直後に表示する。
-
-            iPhoneで
-            「選んだのに何も変わらない」
-            状態を防ぐ。
+           まず即表示
           */
 
           currentImage =
@@ -1018,16 +1347,15 @@ if (imageInput) {
 
 
           /*
-            その後で軽量化。
+           その後圧縮
           */
 
           compressImage(
             source,
-            function (compressed) {
+            compressed => {
 
               currentImage =
                 compressed;
-
 
               updateImageUI();
 
@@ -1044,7 +1372,7 @@ if (imageInput) {
             "画像を読み込めませんでした。もう一度選んでね。"
           );
 
-      };
+        };
 
 
       reader.readAsDataURL(
@@ -1058,24 +1386,29 @@ if (imageInput) {
 
 
 /* =========================================
-   画像削除
+   REMOVE IMAGE
 ========================================= */
 
 if (removeImageButton) {
 
   removeImageButton.addEventListener(
     "click",
-    function (event) {
+    event => {
 
       event.preventDefault();
+
       event.stopPropagation();
 
 
-      currentImage = "";
+      currentImage =
+        "";
 
 
       if (imageInput) {
-        imageInput.value = "";
+
+        imageInput.value =
+          "";
+
       }
 
 
@@ -1088,12 +1421,37 @@ if (removeImageButton) {
 
 
 /* =========================================
-   新規追加
+   RESET RELEASE
+========================================= */
+
+function resetReleaseInput() {
+
+  if (releaseYear) {
+    releaseYear.value = "";
+  }
+
+  if (releaseMonth) {
+    releaseMonth.value = "";
+  }
+
+  if (releaseUndecided) {
+    releaseUndecided.checked = false;
+  }
+
+
+  updateReleaseUI();
+
+}
+
+
+/* =========================================
+   OPEN ADD
 ========================================= */
 
 function openAddScreen() {
 
-  editingId = null;
+  editingId =
+    null;
 
 
   if (addForm) {
@@ -1101,13 +1459,17 @@ function openAddScreen() {
   }
 
 
-  currentImage = "";
+  currentImage =
+    "";
 
 
   setAuthor(
-    settings.user || "よしの"
+    settings.user ||
+    "よしの"
   );
 
+
+  resetReleaseInput();
 
   updateImageUI();
 
@@ -1147,14 +1509,14 @@ function openAddScreen() {
 
 
 /* =========================================
-   保存
+   SAVE
 ========================================= */
 
 if (addForm) {
 
   addForm.addEventListener(
     "submit",
-    function (event) {
+    event => {
 
       event.preventDefault();
 
@@ -1167,9 +1529,48 @@ if (addForm) {
 
       if (!title) {
 
-        if (titleInput) {
-          titleInput.focus();
-        }
+        titleInput?.focus();
+
+        return;
+
+      }
+
+
+      const undecided =
+        releaseUndecided
+        &&
+        releaseUndecided.checked;
+
+
+      const year =
+        releaseYear
+          ? releaseYear.value
+          : "";
+
+
+      const month =
+        releaseMonth
+          ? releaseMonth.value
+          : "";
+
+
+      /*
+       未定ではないのに
+       年月が片方しかない場合
+      */
+
+      if (
+        !undecided
+        &&
+        (
+          !year ||
+          !month
+        )
+      ) {
+
+        alert(
+          "発売予定の年と月を選ぶか、「発売日未定」を選んでね"
+        );
 
         return;
 
@@ -1179,7 +1580,9 @@ if (addForm) {
       let savedId;
 
 
-      if (editingId !== null) {
+      if (
+        editingId !== null
+      ) {
 
         const index =
           gachas.findIndex(
@@ -1200,10 +1603,27 @@ if (addForm) {
 
           title,
 
+          releaseStatus:
+            undecided
+              ? "undecided"
+              : "month",
+
+          releaseYear:
+            undecided
+              ? ""
+              : Number(year),
+
+          releaseMonth:
+            undecided
+              ? ""
+              : Number(month),
+
+          /*
+           古い日付は新規保存時に削除
+          */
+
           releaseDate:
-            releaseInput
-              ? releaseInput.value
-              : "",
+            "",
 
           image:
             currentImage || "",
@@ -1233,17 +1653,30 @@ if (addForm) {
           Date.now();
 
 
-        const newItem = {
+        gachas.unshift({
 
           id:
             savedId,
 
           title,
 
+          releaseStatus:
+            undecided
+              ? "undecided"
+              : "month",
+
+          releaseYear:
+            undecided
+              ? ""
+              : Number(year),
+
+          releaseMonth:
+            undecided
+              ? ""
+              : Number(month),
+
           releaseDate:
-            releaseInput
-              ? releaseInput.value
-              : "",
+            "",
 
           image:
             currentImage || "",
@@ -1264,12 +1697,7 @@ if (addForm) {
           createdAt:
             Date.now()
 
-        };
-
-
-        gachas.unshift(
-          newItem
-        );
+        });
 
       }
 
@@ -1283,13 +1711,12 @@ if (addForm) {
       }
 
 
+      const wasEditing =
+        editingId !== null;
+
+
       render();
 
-
-      /*
-        追加画面を閉じるが、
-        bodyのロックは維持。
-      */
 
       closeScreen(
         addScreen,
@@ -1297,25 +1724,19 @@ if (addForm) {
       );
 
 
-      /*
-        次の描画フレームで
-        詳細画面を開く。
-
-        Safari対策。
-      */
-
       requestAnimationFrame(
-        function () {
+        () => {
 
           requestAnimationFrame(
-            function () {
+            () => {
 
               showDetail(
                 savedId
               );
 
+
               showToast(
-                editingId !== null
+                wasEditing
                   ? "変更を保存したよ"
                   : "ポケットに入れたよ"
               );
@@ -1337,7 +1758,7 @@ if (addForm) {
 
 
 /* =========================================
-   詳細画面
+   DETAIL
 ========================================= */
 
 function showDetail(id) {
@@ -1351,14 +1772,7 @@ function showDetail(id) {
 
 
   if (!item) {
-
-    console.error(
-      "詳細データが見つかりません",
-      id
-    );
-
     return;
-
   }
 
 
@@ -1366,33 +1780,26 @@ function showDetail(id) {
     item.id;
 
 
-  const detailImageArea =
+  const imageArea =
     document.getElementById(
       "detailImageArea"
     );
 
 
-  if (detailImageArea) {
+  if (imageArea) {
 
-    if (item.image) {
+    imageArea.innerHTML =
+      item.image
 
-      detailImageArea.innerHTML =
-        `
+        ? `
           <img
             class="detail-image"
             src="${item.image}"
-            alt="${escapeHTML(
-              item.title
-            )}"
+            alt=""
           >
-        `;
+        `
 
-    } else {
-
-      detailImageArea.innerHTML =
-        placeholderHTML(true);
-
-    }
+        : placeholderHTML(true);
 
   }
 
@@ -1443,9 +1850,7 @@ function showDetail(id) {
   if (detailDate) {
 
     detailDate.textContent =
-      formatDate(
-        item.releaseDate
-      );
+      formatRelease(item);
 
   }
 
@@ -1458,10 +1863,15 @@ function showDetail(id) {
 
   if (detailRelease) {
 
+    const info =
+      getReleaseInfo(item);
+
+
     detailRelease.textContent =
-      item.releaseDate
-        ? "発売予定"
-        : "発売日未定";
+      info.status ===
+        "undecided"
+        ? "発売未定"
+        : "発売予定";
 
   }
 
@@ -1518,18 +1928,14 @@ function showDetail(id) {
 
 
 /* =========================================
-   カードタップ
-
-   clickをカード生成後に毎回
-   付け直すのではなく、
-   親要素で受け取る。
+   CARD CLICK
 ========================================= */
 
 if (cards) {
 
   cards.addEventListener(
     "click",
-    function (event) {
+    event => {
 
       const card =
         event.target.closest(
@@ -1545,11 +1951,9 @@ if (cards) {
       event.preventDefault();
 
 
-      const id =
-        card.dataset.id;
-
-
-      showDetail(id);
+      showDetail(
+        card.dataset.id
+      );
 
     }
   );
@@ -1557,10 +1961,11 @@ if (cards) {
 
   cards.addEventListener(
     "keydown",
-    function (event) {
+    event => {
 
       if (
-        event.key !== "Enter" &&
+        event.key !== "Enter"
+        &&
         event.key !== " "
       ) {
         return;
@@ -1605,7 +2010,7 @@ if (openUrlButton) {
 
   openUrlButton.addEventListener(
     "click",
-    function () {
+    () => {
 
       const item =
         gachas.find(
@@ -1615,12 +2020,10 @@ if (openUrlButton) {
         );
 
 
-      if (!item) {
-        return;
-      }
-
-
-      if (!item.url) {
+      if (
+        !item ||
+        !item.url
+      ) {
 
         showToast(
           "このガチャにはURLがまだないよ"
@@ -1644,7 +2047,7 @@ if (openUrlButton) {
 
 
 /* =========================================
-   編集
+   EDIT
 ========================================= */
 
 const editButton =
@@ -1657,7 +2060,7 @@ if (editButton) {
 
   editButton.addEventListener(
     "click",
-    function () {
+    () => {
 
       const item =
         gachas.find(
@@ -1677,26 +2080,26 @@ if (editButton) {
 
 
       if (titleInput) {
+
         titleInput.value =
           item.title || "";
-      }
 
-
-      if (releaseInput) {
-        releaseInput.value =
-          item.releaseDate || "";
       }
 
 
       if (urlInput) {
+
         urlInput.value =
           item.url || "";
+
       }
 
 
       if (memoInput) {
+
         memoInput.value =
           item.memo || "";
+
       }
 
 
@@ -1709,6 +2112,48 @@ if (editButton) {
         settings.user
       );
 
+
+      /*
+       発売予定を復元
+      */
+
+      const releaseInfo =
+        getReleaseInfo(item);
+
+
+      if (
+        releaseInfo.status ===
+        "undecided"
+      ) {
+
+        releaseUndecided.checked =
+          true;
+
+        releaseYear.value =
+          "";
+
+        releaseMonth.value =
+          "";
+
+      } else {
+
+        releaseUndecided.checked =
+          false;
+
+        releaseYear.value =
+          String(
+            releaseInfo.year
+          );
+
+        releaseMonth.value =
+          String(
+            releaseInfo.month
+          );
+
+      }
+
+
+      updateReleaseUI();
 
       updateImageUI();
 
@@ -1747,7 +2192,7 @@ if (editButton) {
 
 
       requestAnimationFrame(
-        function () {
+        () => {
 
           openScreen(
             addScreen
@@ -1763,7 +2208,7 @@ if (editButton) {
 
 
 /* =========================================
-   削除
+   DELETE
 ========================================= */
 
 const deleteButton =
@@ -1776,7 +2221,7 @@ if (deleteButton) {
 
   deleteButton.addEventListener(
     "click",
-    function () {
+    () => {
 
       const item =
         gachas.find(
@@ -1835,38 +2280,38 @@ if (deleteButton) {
 
 
 /* =========================================
-   設定
+   SETTINGS
 ========================================= */
 
 function updateStats() {
 
-  const totalCount =
+  const total =
     document.getElementById(
       "totalCount"
     );
 
-  const yoshinoCount =
+  const yoshino =
     document.getElementById(
       "yoshinoCount"
     );
 
-  const takeuchiCount =
+  const takeuchi =
     document.getElementById(
       "takeuchiCount"
     );
 
 
-  if (totalCount) {
+  if (total) {
 
-    totalCount.textContent =
+    total.textContent =
       gachas.length;
 
   }
 
 
-  if (yoshinoCount) {
+  if (yoshino) {
 
-    yoshinoCount.textContent =
+    yoshino.textContent =
       gachas.filter(
         item =>
           item.author ===
@@ -1876,9 +2321,9 @@ function updateStats() {
   }
 
 
-  if (takeuchiCount) {
+  if (takeuchi) {
 
-    takeuchiCount.textContent =
+    takeuchi.textContent =
       gachas.filter(
         item =>
           item.author ===
@@ -1907,29 +2352,29 @@ function updateSettingsUI() {
     });
 
 
-  const defaultViewSelect =
+  const defaultView =
     document.getElementById(
       "defaultViewSelect"
     );
 
 
-  if (defaultViewSelect) {
+  if (defaultView) {
 
-    defaultViewSelect.value =
+    defaultView.value =
       settings.view;
 
   }
 
 
-  const defaultSortSelect =
+  const defaultSort =
     document.getElementById(
       "defaultSortSelect"
     );
 
 
-  if (defaultSortSelect) {
+  if (defaultSort) {
 
-    defaultSortSelect.value =
+    defaultSort.value =
       settings.sort;
 
   }
@@ -1952,7 +2397,7 @@ function openSettings() {
 
 
 /* =========================================
-   イベント登録
+   EVENT
 ========================================= */
 
 if (addButton) {
@@ -1965,37 +2410,24 @@ if (addButton) {
 }
 
 
-document
-  .querySelectorAll(
-    ".author-button"
-  )
-  .forEach(button => {
+if (settingsButton) {
 
-    button.addEventListener(
-      "click",
-      function () {
+  settingsButton.addEventListener(
+    "click",
+    openSettings
+  );
 
-        setAuthor(
-          this.dataset.author
-        );
-
-      }
-    );
-
-  });
+}
 
 
 if (photoButton) {
 
   photoButton.addEventListener(
     "click",
-    function () {
-
+    () =>
       setViewMode(
         "photo"
-      );
-
-    }
+      )
   );
 
 }
@@ -2005,13 +2437,10 @@ if (listButton) {
 
   listButton.addEventListener(
     "click",
-    function () {
-
+    () =>
       setViewMode(
         "list"
-      );
-
-    }
+      )
   );
 
 }
@@ -2031,10 +2460,10 @@ if (sortSelect) {
 
   sortSelect.addEventListener(
     "change",
-    function () {
+    () => {
 
       settings.sort =
-        this.value;
+        sortSelect.value;
 
       saveSettings();
 
@@ -2046,6 +2475,68 @@ if (sortSelect) {
 }
 
 
+/* =========================================
+   RELEASE EVENTS
+========================================= */
+
+if (releaseYear) {
+
+  releaseYear.addEventListener(
+    "change",
+    updateReleaseUI
+  );
+
+}
+
+
+if (releaseMonth) {
+
+  releaseMonth.addEventListener(
+    "change",
+    updateReleaseUI
+  );
+
+}
+
+
+if (releaseUndecided) {
+
+  releaseUndecided.addEventListener(
+    "change",
+    updateReleaseUI
+  );
+
+}
+
+
+/* =========================================
+   AUTHOR BUTTONS
+========================================= */
+
+document
+  .querySelectorAll(
+    ".author-button"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        setAuthor(
+          button.dataset.author
+        );
+
+      }
+    );
+
+  });
+
+
+/* =========================================
+   FILTER
+========================================= */
+
 document
   .querySelectorAll(
     ".filter-button"
@@ -2054,10 +2545,10 @@ document
 
     button.addEventListener(
       "click",
-      function () {
+      () => {
 
         currentFilter =
-          this.dataset.filter;
+          button.dataset.filter;
 
 
         document
@@ -2083,42 +2574,7 @@ document
 
 
 /* =========================================
-   設定ボタン
-========================================= */
-
-const settingsButton =
-  document.getElementById(
-    "settingsButton"
-  );
-
-const bottomSettings =
-  document.getElementById(
-    "bottomSettings"
-  );
-
-
-if (settingsButton) {
-
-  settingsButton.addEventListener(
-    "click",
-    openSettings
-  );
-
-}
-
-
-if (bottomSettings) {
-
-  bottomSettings.addEventListener(
-    "click",
-    openSettings
-  );
-
-}
-
-
-/* =========================================
-   設定ユーザー
+   SETTINGS USER
 ========================================= */
 
 document
@@ -2129,10 +2585,10 @@ document
 
     button.addEventListener(
       "click",
-      function () {
+      () => {
 
         settings.user =
-          this.dataset.user;
+          button.dataset.user;
 
         currentAuthor =
           settings.user;
@@ -2147,6 +2603,10 @@ document
   });
 
 
+/* =========================================
+   SETTINGS SELECTS
+========================================= */
+
 const defaultViewSelect =
   document.getElementById(
     "defaultViewSelect"
@@ -2157,12 +2617,13 @@ if (defaultViewSelect) {
 
   defaultViewSelect.addEventListener(
     "change",
-    function () {
+    () => {
 
       settings.view =
-        this.value;
+        defaultViewSelect.value;
 
       saveSettings();
+
 
       setViewMode(
         settings.view,
@@ -2185,10 +2646,10 @@ if (defaultSortSelect) {
 
   defaultSortSelect.addEventListener(
     "change",
-    function () {
+    () => {
 
       settings.sort =
-        this.value;
+        defaultSortSelect.value;
 
       saveSettings();
 
@@ -2210,7 +2671,7 @@ if (defaultSortSelect) {
 
 
 /* =========================================
-   全削除
+   DELETE ALL
 ========================================= */
 
 const deleteAllButton =
@@ -2223,7 +2684,7 @@ if (deleteAllButton) {
 
   deleteAllButton.addEventListener(
     "click",
-    function () {
+    () => {
 
       const ok =
         confirm(
@@ -2236,7 +2697,8 @@ if (deleteAllButton) {
       }
 
 
-      gachas = [];
+      gachas =
+        [];
 
 
       saveData();
@@ -2257,7 +2719,7 @@ if (deleteAllButton) {
 
 
 /* =========================================
-   閉じる
+   CLOSE
 ========================================= */
 
 function bindClose(
@@ -2276,13 +2738,10 @@ function bindClose(
 
   button.addEventListener(
     "click",
-    function () {
-
+    () =>
       closeScreen(
         screen
-      );
-
-    }
+      )
   );
 
 }
@@ -2293,119 +2752,28 @@ bindClose(
   addScreen
 );
 
+
 bindClose(
   "cancelAddButton",
   addScreen
 );
+
 
 bindClose(
   "closeDetailButton",
   detailScreen
 );
 
+
+/*
+ 設定の
+ 「ホーム」
+*/
+
 bindClose(
   "closeSettingsButton",
   settingsScreen
 );
-
-
-/* =========================================
-   下部ナビ
-========================================= */
-
-const homeButton =
-  document.getElementById(
-    "homeButton"
-  );
-
-
-if (homeButton) {
-
-  homeButton.addEventListener(
-    "click",
-    function () {
-
-      currentFilter =
-        "all";
-
-
-      document
-        .querySelectorAll(
-          ".filter-button"
-        )
-        .forEach(button => {
-
-          button.classList.toggle(
-            "active",
-            button.dataset.filter ===
-              "all"
-          );
-
-        });
-
-
-      render();
-
-
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
-
-    }
-  );
-
-}
-
-
-const allGachaButton =
-  document.getElementById(
-    "allGachaButton"
-  );
-
-
-if (allGachaButton) {
-
-  allGachaButton.addEventListener(
-    "click",
-    function () {
-
-      currentFilter =
-        "all";
-
-
-      if (searchInput) {
-        searchInput.value = "";
-      }
-
-
-      document
-        .querySelectorAll(
-          ".filter-button"
-        )
-        .forEach(button => {
-
-          button.classList.toggle(
-            "active",
-            button.dataset.filter ===
-              "all"
-          );
-
-        });
-
-
-      render();
-
-
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
-
-    }
-  );
-
-}
 
 
 /* =========================================
@@ -2435,7 +2803,7 @@ function showToast(message) {
 
   toastTimer =
     setTimeout(
-      function () {
+      () => {
 
         toast.classList.remove(
           "show"
@@ -2449,8 +2817,11 @@ function showToast(message) {
 
 
 /* =========================================
-   起動
+   START
 ========================================= */
+
+createYearOptions();
+
 
 if (sortSelect) {
 
@@ -2465,6 +2836,8 @@ setViewMode(
   false
 );
 
+
+updateReleaseUI();
 
 updateImageUI();
 
