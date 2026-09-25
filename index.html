@@ -104,7 +104,7 @@
   <section class="filter-row">
 
     <button
-      class="filter-button active"
+      class="filter-button"
       data-filter="all"
       type="button"
     >
@@ -171,7 +171,7 @@
 
 
 <!-- =====================================
-     追加・編集画面
+     追加・編集
 ===================================== -->
 
 <div
@@ -228,7 +228,7 @@
         <div class="author-buttons">
 
           <button
-            class="author-button yoshino selected"
+            class="author-button yoshino"
             data-author="よしの"
             type="button"
           >
@@ -270,8 +270,6 @@
       </div>
 
 
-      <!-- 発売予定 -->
-
       <div class="form-field">
 
         <div class="field-title">
@@ -303,9 +301,7 @@
 
               <select id="releaseMonth">
 
-                <option value="">
-                  月を選択
-                </option>
+                <option value="">月を選択</option>
 
                 <option value="1">1月</option>
                 <option value="2">2月</option>
@@ -336,9 +332,7 @@
 
             <span class="custom-check"></span>
 
-            <span>
-              発売日未定
-            </span>
+            <span>発売日未定</span>
 
           </label>
 
@@ -355,15 +349,12 @@
       </div>
 
 
-      <!-- 画像 -->
-
       <div class="form-field">
 
         <div class="field-title">
           <span class="number">3</span>
           画像
         </div>
-
 
         <div class="image-upload">
 
@@ -430,8 +421,6 @@
       </div>
 
 
-      <!-- URL -->
-
       <div class="form-field">
 
         <label
@@ -451,8 +440,6 @@
 
       </div>
 
-
-      <!-- メモ -->
 
       <div class="form-field">
 
@@ -499,7 +486,7 @@
 
 
 <!-- =====================================
-     詳細画面
+     詳細
 ===================================== -->
 
 <div
@@ -524,13 +511,9 @@
 
       <div class="form-header-title">
 
-        <h1>
-          ガチャ詳細
-        </h1>
+        <h1>ガチャ詳細</h1>
 
-        <p>
-          ポケットの中身
-        </p>
+        <p>ポケットの中身</p>
 
       </div>
 
@@ -646,7 +629,7 @@
 
 
 <!-- =====================================
-     設定画面
+     設定
 ===================================== -->
 
 <div
@@ -667,13 +650,21 @@
         type="button"
       >
         <span class="home-back-icon"></span>
-        ホーム
+        <span>ホーム</span>
       </button>
 
 
       <div class="settings-page-title">
 
-        <h1>設定</h1>
+        <div class="settings-title-line">
+
+          <div class="capsule-mark settings-capsule">
+            <span></span>
+          </div>
+
+          <h1>設定</h1>
+
+        </div>
 
         <p>
           ガチャポケットを自分好みに
@@ -682,9 +673,10 @@
       </div>
 
 
-      <div class="capsule-mark form-capsule">
-        <span></span>
-      </div>
+      <div
+        class="settings-header-spacer"
+        aria-hidden="true"
+      ></div>
 
     </header>
 
@@ -737,7 +729,6 @@
           id="defaultViewSelect"
           class="settings-select"
         >
-
           <option value="photo">
             写真表示
           </option>
@@ -745,7 +736,6 @@
           <option value="list">
             リスト表示
           </option>
-
         </select>
 
       </section>
@@ -764,7 +754,6 @@
           id="defaultSortSelect"
           class="settings-select"
         >
-
           <option value="new">
             追加順
           </option>
@@ -776,7 +765,6 @@
           <option value="title">
             タイトル順
           </option>
-
         </select>
 
       </section>
