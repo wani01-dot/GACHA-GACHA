@@ -2,6 +2,12 @@
    ガチャポケット
 ========================================= */
 
+const SUPABASE_URL =
+  "https://fcsdalrtcahjzibrjaaa.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_knbi7zS6UuBY6dqSfy9rFg_QXfn0i-W";
+
 const STORAGE_KEY =
   "gacha-pocket-main-v2";
 
