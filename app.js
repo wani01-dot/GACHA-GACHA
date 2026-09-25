@@ -50,8 +50,75 @@ const sampleData = [
 const defaultSettings = {
   user: "よしの",
   view: "photo",
-  sort: "new"
+  sort: "new",
+  filter: "all"
 };
+
+
+/* =========================================
+   STORAGE
+========================================= */
+
+function loadData() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        STORAGE_KEY
+      );
+
+    if (!saved) {
+      return [...sampleData];
+    }
+
+    const parsed =
+      JSON.parse(saved);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [...sampleData];
+
+  } catch {
+
+    return [...sampleData];
+
+  }
+
+}
+
+
+function loadSettings() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        SETTINGS_KEY
+      );
+
+    if (!saved) {
+
+      return {
+        ...defaultSettings
+      };
+
+    }
+
+    return {
+      ...defaultSettings,
+      ...JSON.parse(saved)
+    };
+
+  } catch {
+
+    return {
+      ...defaultSettings
+    };
+
+  }
+
+}
 
 
 /* =========================================
@@ -65,7 +132,7 @@ let settings =
   loadSettings();
 
 let currentFilter =
-  "all";
+  settings.filter || "all";
 
 let currentAuthor =
   settings.user;
@@ -134,7 +201,6 @@ const addForm =
 const titleInput =
   document.getElementById("titleInput");
 
-
 const releaseYear =
   document.getElementById("releaseYear");
 
@@ -191,37 +257,8 @@ const toast =
 
 
 /* =========================================
-   STORAGE
+   SAVE STORAGE
 ========================================= */
-
-function loadData() {
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        STORAGE_KEY
-      );
-
-    if (!saved) {
-      return [...sampleData];
-    }
-
-    const parsed =
-      JSON.parse(saved);
-
-    return Array.isArray(parsed)
-      ? parsed
-      : [...sampleData];
-
-  } catch {
-
-    return [...sampleData];
-
-  }
-
-}
-
 
 function saveData() {
 
@@ -243,39 +280,6 @@ function saveData() {
     );
 
     return false;
-
-  }
-
-}
-
-
-function loadSettings() {
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        SETTINGS_KEY
-      );
-
-    if (!saved) {
-
-      return {
-        ...defaultSettings
-      };
-
-    }
-
-    return {
-      ...defaultSettings,
-      ...JSON.parse(saved)
-    };
-
-  } catch {
-
-    return {
-      ...defaultSettings
-    };
 
   }
 
@@ -319,33 +323,10 @@ function escapeHTML(value) {
 
 
 /* =========================================
-   発売予定
+   RELEASE
 ========================================= */
 
-/*
- 新データ：
-
- releaseStatus:
-   "month"
-   "undecided"
-
- releaseYear:
-   2026
-
- releaseMonth:
-   11
-
- 旧データの
- releaseDate: "2026-11-13"
- も読み取れる。
-*/
-
-
 function getReleaseInfo(item) {
-
-  /*
-   発売日未定
-  */
 
   if (
     item.releaseStatus ===
@@ -361,10 +342,6 @@ function getReleaseInfo(item) {
   }
 
 
-  /*
-   新形式
-  */
-
   if (
     item.releaseYear &&
     item.releaseMonth
@@ -374,17 +351,12 @@ function getReleaseInfo(item) {
       status: "month",
       year:
         Number(item.releaseYear),
-
       month:
         Number(item.releaseMonth)
     };
 
   }
 
-
-  /*
-   旧形式を変換
-  */
 
   if (item.releaseDate) {
 
@@ -399,10 +371,8 @@ function getReleaseInfo(item) {
 
       return {
         status: "month",
-
         year:
           Number(parts[0]),
-
         month:
           Number(parts[1])
       };
@@ -411,10 +381,6 @@ function getReleaseInfo(item) {
 
   }
 
-
-  /*
-   何も登録されていない旧データ
-  */
 
   return {
     status: "undecided",
@@ -487,7 +453,7 @@ function getReleaseSortValue(item) {
 
 
 /* =========================================
-   年選択を生成
+   YEAR OPTIONS
 ========================================= */
 
 function createYearOptions() {
@@ -508,10 +474,6 @@ function createYearOptions() {
       </option>
     `;
 
-
-  /*
-    前年から10年先まで
-  */
 
   for (
     let year =
@@ -546,7 +508,7 @@ function createYearOptions() {
 
 
 /* =========================================
-   発売予定入力UI
+   RELEASE UI
 ========================================= */
 
 function updateReleaseUI() {
@@ -567,8 +529,7 @@ function updateReleaseUI() {
 
 
   if (
-    releaseYear
-    &&
+    releaseYear &&
     releaseMonth
   ) {
 
@@ -733,6 +694,57 @@ function createCard(item) {
 
     </article>
   `;
+
+}
+
+
+/* =========================================
+   FILTER UI
+========================================= */
+
+function updateFilterUI() {
+
+  document
+    .querySelectorAll(
+      ".filter-button"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.filter ===
+          currentFilter
+      );
+
+    });
+
+}
+
+
+function setFilter(filter) {
+
+  const validFilters = [
+    "all",
+    "よしの",
+    "たけうち"
+  ];
+
+
+  currentFilter =
+    validFilters.includes(filter)
+      ? filter
+      : "all";
+
+
+  settings.filter =
+    currentFilter;
+
+
+  saveSettings();
+
+  updateFilterUI();
+
+  render();
 
 }
 
@@ -926,7 +938,7 @@ function setViewMode(
 
 
 /* =========================================
-   BACKGROUND LOCK
+   SCREEN LOCK
 ========================================= */
 
 function lockBackground() {
@@ -963,7 +975,13 @@ function lockBackground() {
 }
 
 
-function unlockBackground() {
+function unlockBackground(
+  restorePosition = true
+) {
+
+  const restoreY =
+    savedScrollY;
+
 
   document.body.style.position =
     "";
@@ -980,11 +998,21 @@ function unlockBackground() {
   document.body.style.width =
     "";
 
+  document.body.style.overflow =
+    "";
 
-  window.scrollTo(
-    0,
-    savedScrollY
-  );
+  document.documentElement.style.overflow =
+    "";
+
+
+  if (restorePosition) {
+
+    window.scrollTo(
+      0,
+      restoreY
+    );
+
+  }
 
 }
 
@@ -1335,20 +1363,12 @@ if (imageInput) {
             event.target.result;
 
 
-          /*
-           まず即表示
-          */
-
           currentImage =
             source;
 
 
           updateImageUI();
 
-
-          /*
-           その後圧縮
-          */
 
           compressImage(
             source,
@@ -1554,11 +1574,6 @@ if (addForm) {
           : "";
 
 
-      /*
-       未定ではないのに
-       年月が片方しかない場合
-      */
-
       if (
         !undecided
         &&
@@ -1617,10 +1632,6 @@ if (addForm) {
             undecided
               ? ""
               : Number(month),
-
-          /*
-           古い日付は新規保存時に削除
-          */
 
           releaseDate:
             "",
@@ -2113,10 +2124,6 @@ if (editButton) {
       );
 
 
-      /*
-       発売予定を復元
-      */
-
       const releaseInfo =
         getReleaseInfo(item);
 
@@ -2126,29 +2133,41 @@ if (editButton) {
         "undecided"
       ) {
 
-        releaseUndecided.checked =
-          true;
+        if (releaseUndecided) {
+          releaseUndecided.checked =
+            true;
+        }
 
-        releaseYear.value =
-          "";
+        if (releaseYear) {
+          releaseYear.value =
+            "";
+        }
 
-        releaseMonth.value =
-          "";
+        if (releaseMonth) {
+          releaseMonth.value =
+            "";
+        }
 
       } else {
 
-        releaseUndecided.checked =
-          false;
+        if (releaseUndecided) {
+          releaseUndecided.checked =
+            false;
+        }
 
-        releaseYear.value =
-          String(
-            releaseInfo.year
-          );
+        if (releaseYear) {
+          releaseYear.value =
+            String(
+              releaseInfo.year
+            );
+        }
 
-        releaseMonth.value =
-          String(
-            releaseInfo.month
-          );
+        if (releaseMonth) {
+          releaseMonth.value =
+            String(
+              releaseInfo.month
+            );
+        }
 
       }
 
@@ -2397,7 +2416,102 @@ function openSettings() {
 
 
 /* =========================================
-   EVENT
+   SETTINGS → HOME
+========================================= */
+
+function returnHomeFromSettings() {
+
+  if (settingsScreen) {
+
+    settingsScreen.classList.remove(
+      "open"
+    );
+
+    settingsScreen.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+  }
+
+
+  if (addScreen) {
+
+    addScreen.classList.remove(
+      "open"
+    );
+
+    addScreen.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+  }
+
+
+  if (detailScreen) {
+
+    detailScreen.classList.remove(
+      "open"
+    );
+
+    detailScreen.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+  }
+
+
+  unlockBackground(
+    false
+  );
+
+
+  if (searchInput) {
+
+    searchInput.value =
+      "";
+
+  }
+
+
+  updateFilterUI();
+
+
+  setViewMode(
+    settings.view,
+    false
+  );
+
+
+  if (sortSelect) {
+
+    sortSelect.value =
+      settings.sort;
+
+  }
+
+
+  render();
+
+
+  requestAnimationFrame(
+    () => {
+
+      window.scrollTo(
+        0,
+        0
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   MAIN EVENTS
 ========================================= */
 
 if (addButton) {
@@ -2534,7 +2648,7 @@ document
 
 
 /* =========================================
-   FILTER
+   FILTER BUTTONS
 ========================================= */
 
 document
@@ -2547,25 +2661,9 @@ document
       "click",
       () => {
 
-        currentFilter =
-          button.dataset.filter;
-
-
-        document
-          .querySelectorAll(
-            ".filter-button"
-          )
-          .forEach(item => {
-
-            item.classList.toggle(
-              "active",
-              item === button
-            );
-
-          });
-
-
-        render();
+        setFilter(
+          button.dataset.filter
+        );
 
       }
     );
@@ -2765,15 +2863,32 @@ bindClose(
 );
 
 
-/*
- 設定の
- 「ホーム」
-*/
+/* =========================================
+   SETTINGS HOME BUTTON
+========================================= */
 
-bindClose(
-  "closeSettingsButton",
-  settingsScreen
-);
+const closeSettingsButton =
+  document.getElementById(
+    "closeSettingsButton"
+  );
+
+
+if (closeSettingsButton) {
+
+  closeSettingsButton.addEventListener(
+    "click",
+    event => {
+
+      event.preventDefault();
+
+      event.stopPropagation();
+
+      returnHomeFromSettings();
+
+    }
+  );
+
+}
 
 
 /* =========================================
@@ -2823,6 +2938,30 @@ function showToast(message) {
 createYearOptions();
 
 
+const validStartFilters = [
+  "all",
+  "よしの",
+  "たけうち"
+];
+
+
+if (
+  !validStartFilters.includes(
+    currentFilter
+  )
+) {
+
+  currentFilter =
+    "all";
+
+  settings.filter =
+    "all";
+
+  saveSettings();
+
+}
+
+
 if (sortSelect) {
 
   sortSelect.value =
@@ -2837,8 +2976,12 @@ setViewMode(
 );
 
 
+updateFilterUI();
+
 updateReleaseUI();
 
 updateImageUI();
+
+updateSettingsUI();
 
 render();
