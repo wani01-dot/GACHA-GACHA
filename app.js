@@ -1,5 +1,11 @@
 /* =========================================
    ガチャポケット
+   SUPABASE SHARED VERSION
+========================================= */
+
+
+/* =========================================
+   SUPABASE
 ========================================= */
 
 const SUPABASE_URL =
@@ -7,54 +13,28 @@ const SUPABASE_URL =
 
 const SUPABASE_KEY =
   "sb_publishable_knbi7zS6UuBY6dqSfy9rFg_QXfn0i-W";
+
+
 const supabaseClient =
   window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
-const STORAGE_KEY =
-  "gacha-pocket-main-v2";
 
-const SETTINGS_KEY =
-  "gacha-pocket-settings-v1";
+
+const GACHA_TABLE =
+  "gachas";
+
+const IMAGE_BUCKET =
+  "gacha-images";
 
 
 /* =========================================
-   SAMPLE
+   LOCAL SETTINGS
 ========================================= */
 
-const sampleData = [
-  {
-    id: 1,
-    title: "ぽてっとハムスター",
-    releaseDate: "2026-12-01",
-    image: "",
-    url: "",
-    memo: "見つけたら回す！",
-    author: "よしの",
-    createdAt: 3
-  },
-  {
-    id: 2,
-    title: "レトロ喫茶マスコット",
-    releaseDate: "2026-11-01",
-    image: "",
-    url: "",
-    memo: "クリームソーダ狙い",
-    author: "たけうち",
-    createdAt: 2
-  },
-  {
-    id: 3,
-    title: "おやすみ動物たち",
-    releaseDate: "2026-10-01",
-    image: "",
-    url: "",
-    memo: "全部かわいい",
-    author: "よしの",
-    createdAt: 1
-  }
-];
+const SETTINGS_KEY =
+  "gacha-pocket-settings-v1";
 
 
 const defaultSettings = {
@@ -63,39 +43,6 @@ const defaultSettings = {
   sort: "new",
   filter: "all"
 };
-
-
-/* =========================================
-   STORAGE
-========================================= */
-
-function loadData() {
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        STORAGE_KEY
-      );
-
-    if (!saved) {
-      return [...sampleData];
-    }
-
-    const parsed =
-      JSON.parse(saved);
-
-    return Array.isArray(parsed)
-      ? parsed
-      : [...sampleData];
-
-  } catch {
-
-    return [...sampleData];
-
-  }
-
-}
 
 
 function loadSettings() {
@@ -131,12 +78,25 @@ function loadSettings() {
 }
 
 
+function saveSettings() {
+
+  try {
+
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify(settings)
+    );
+
+  } catch {}
+
+}
+
+
 /* =========================================
    STATE
 ========================================= */
 
-let gachas =
-  loadData();
+let gachas = [];
 
 let settings =
   loadSettings();
@@ -147,8 +107,9 @@ let currentFilter =
 let currentAuthor =
   settings.user;
 
-let currentImage =
-  "";
+let currentImage = "";
+
+let currentImageFile = null;
 
 let viewMode =
   settings.view;
@@ -164,6 +125,9 @@ let savedScrollY =
 
 let toastTimer =
   null;
+
+let isSaving =
+  false;
 
 
 /* =========================================
@@ -267,50 +231,6 @@ const toast =
 
 
 /* =========================================
-   SAVE STORAGE
-========================================= */
-
-function saveData() {
-
-  try {
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(gachas)
-    );
-
-    return true;
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      "保存できませんでした。画像の容量が大きすぎる可能性があります。"
-    );
-
-    return false;
-
-  }
-
-}
-
-
-function saveSettings() {
-
-  try {
-
-    localStorage.setItem(
-      SETTINGS_KEY,
-      JSON.stringify(settings)
-    );
-
-  } catch {}
-
-}
-
-
-/* =========================================
    ESCAPE
 ========================================= */
 
@@ -328,6 +248,164 @@ function escapeHTML(value) {
       "'": "&#039;"
     })[character]
   );
+
+}
+
+
+/* =========================================
+   DATABASE → APP FORMAT
+========================================= */
+
+function databaseToGacha(row) {
+
+  return {
+
+    id:
+      row.id,
+
+    title:
+      row.title || "",
+
+    releaseStatus:
+      row.release_status ||
+      "undecided",
+
+    releaseYear:
+      row.release_year || "",
+
+    releaseMonth:
+      row.release_month || "",
+
+    releaseDate:
+      "",
+
+    image:
+      row.image_url || "",
+
+    url:
+      row.source_url || "",
+
+    memo:
+      row.memo || "",
+
+    author:
+      row.author || "よしの",
+
+    createdAt:
+      Number(row.created_at || 0)
+
+  };
+
+}
+
+
+/* =========================================
+   LOAD FROM SUPABASE
+========================================= */
+
+async function loadGachasFromSupabase() {
+
+  if (cards) {
+
+    cards.innerHTML =
+      `
+        <div
+          style="
+            grid-column:1/-1;
+            text-align:center;
+            padding:40px 20px;
+            opacity:.65;
+          "
+        >
+          ポケットを確認中...
+        </div>
+      `;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(GACHA_TABLE)
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Supabase load error:",
+      error
+    );
+
+
+    if (cards) {
+
+      cards.innerHTML = "";
+
+    }
+
+
+    if (empty) {
+
+      empty.hidden = false;
+
+      const strong =
+        empty.querySelector(
+          "strong"
+        );
+
+      const paragraph =
+        empty.querySelector(
+          "p"
+        );
+
+
+      if (strong) {
+
+        strong.textContent =
+          "読み込めなかったよ";
+
+      }
+
+
+      if (paragraph) {
+
+        paragraph.innerHTML =
+          "Supabaseとの接続を<br>確認してね";
+
+      }
+
+    }
+
+
+    showToast(
+      "データを読み込めませんでした"
+    );
+
+    return false;
+
+  }
+
+
+  gachas =
+    (data || [])
+      .map(databaseToGacha);
+
+
+  render();
+
+  updateStats();
+
+  return true;
 
 }
 
@@ -653,8 +731,9 @@ function createCard(item) {
       ? `
         <img
           class="gacha-image"
-          src="${item.image}"
+          src="${escapeHTML(item.image)}"
           alt=""
+          loading="lazy"
         >
       `
 
@@ -664,7 +743,7 @@ function createCard(item) {
   return `
     <article
       class="gacha-card"
-      data-id="${item.id}"
+      data-id="${escapeHTML(item.id)}"
       role="button"
       tabindex="0"
     >
@@ -1147,7 +1226,7 @@ function updateImageUI() {
     typeof currentImage ===
       "string"
     &&
-    currentImage.length > 20;
+    currentImage.length > 0;
 
 
   if (imagePlaceholder) {
@@ -1232,10 +1311,10 @@ function compressImage(
     function () {
 
       const MAX_WIDTH =
-        900;
+        1200;
 
       const MAX_HEIGHT =
-        900;
+        1200;
 
 
       let width =
@@ -1298,7 +1377,7 @@ function compressImage(
         callback(
           canvas.toDataURL(
             "image/jpeg",
-            .72
+            .78
           )
         );
 
@@ -1320,6 +1399,174 @@ function compressImage(
 
   image.src =
     dataURL;
+
+}
+
+
+/* =========================================
+   DATA URL → BLOB
+========================================= */
+
+function dataURLToBlob(dataURL) {
+
+  const parts =
+    dataURL.split(",");
+
+
+  const mimeMatch =
+    parts[0].match(
+      /data:(.*?);base64/
+    );
+
+
+  const mime =
+    mimeMatch
+      ? mimeMatch[1]
+      : "image/jpeg";
+
+
+  const binary =
+    atob(parts[1]);
+
+
+  const bytes =
+    new Uint8Array(
+      binary.length
+    );
+
+
+  for (
+    let i = 0;
+    i < binary.length;
+    i++
+  ) {
+
+    bytes[i] =
+      binary.charCodeAt(i);
+
+  }
+
+
+  return new Blob(
+    [bytes],
+    {
+      type: mime
+    }
+  );
+
+}
+
+
+/* =========================================
+   UPLOAD IMAGE TO SUPABASE
+========================================= */
+
+async function uploadImageIfNeeded() {
+
+  if (!currentImage) {
+    return "";
+  }
+
+
+  if (
+    currentImage.startsWith(
+      "http://"
+    )
+    ||
+    currentImage.startsWith(
+      "https://"
+    )
+  ) {
+
+    return currentImage;
+
+  }
+
+
+  if (
+    !currentImage.startsWith(
+      "data:"
+    )
+  ) {
+
+    return "";
+
+  }
+
+
+  try {
+
+    const blob =
+      dataURLToBlob(
+        currentImage
+      );
+
+
+    const filename =
+      `gacha-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}.jpg`;
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .storage
+        .from(IMAGE_BUCKET)
+        .upload(
+          filename,
+          blob,
+          {
+            contentType:
+              "image/jpeg",
+
+            cacheControl:
+              "3600",
+
+            upsert:
+              false
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Image upload error:",
+        error
+      );
+
+      throw error;
+
+    }
+
+
+    const {
+      data
+    } =
+      supabaseClient
+        .storage
+        .from(IMAGE_BUCKET)
+        .getPublicUrl(
+          filename
+        );
+
+
+    return (
+      data?.publicUrl ||
+      ""
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    throw new Error(
+      "画像をアップロードできませんでした"
+    );
+
+  }
 
 }
 
@@ -1354,12 +1601,15 @@ if (imageInput) {
           "画像ファイルを選んでね"
         );
 
-        this.value =
-          "";
+        this.value = "";
 
         return;
 
       }
+
+
+      currentImageFile =
+        file;
 
 
       const reader =
@@ -1430,14 +1680,14 @@ if (removeImageButton) {
       event.stopPropagation();
 
 
-      currentImage =
-        "";
+      currentImage = "";
+
+      currentImageFile = null;
 
 
       if (imageInput) {
 
-        imageInput.value =
-          "";
+        imageInput.value = "";
 
       }
 
@@ -1480,8 +1730,7 @@ function resetReleaseInput() {
 
 function openAddScreen() {
 
-  editingId =
-    null;
+  editingId = null;
 
 
   if (addForm) {
@@ -1489,8 +1738,9 @@ function openAddScreen() {
   }
 
 
-  currentImage =
-    "";
+  currentImage = "";
+
+  currentImageFile = null;
 
 
   setAuthor(
@@ -1528,6 +1778,9 @@ function openAddScreen() {
         ポケットに入れる
       `;
 
+    saveButton.disabled =
+      false;
+
   }
 
 
@@ -1539,16 +1792,21 @@ function openAddScreen() {
 
 
 /* =========================================
-   SAVE
+   SAVE TO SUPABASE
 ========================================= */
 
 if (addForm) {
 
   addForm.addEventListener(
     "submit",
-    event => {
+    async event => {
 
       event.preventDefault();
+
+
+      if (isSaving) {
+        return;
+      }
 
 
       const title =
@@ -1602,54 +1860,49 @@ if (addForm) {
       }
 
 
-      let savedId;
+      isSaving = true;
 
 
-      if (
-        editingId !== null
-      ) {
+      if (saveButton) {
 
-        const index =
-          gachas.findIndex(
-            item =>
-              String(item.id) ===
-              String(editingId)
-          );
+        saveButton.disabled =
+          true;
 
+        saveButton.textContent =
+          "保存中...";
 
-        if (index === -1) {
-          return;
-        }
+      }
 
 
-        gachas[index] = {
+      try {
 
-          ...gachas[index],
+        const imageUrl =
+          await uploadImageIfNeeded();
+
+
+        const row = {
 
           title,
 
-          releaseStatus:
+          release_status:
             undecided
               ? "undecided"
               : "month",
 
-          releaseYear:
+          release_year:
             undecided
-              ? ""
+              ? null
               : Number(year),
 
-          releaseMonth:
+          release_month:
             undecided
-              ? ""
+              ? null
               : Number(month),
 
-          releaseDate:
-            "",
+          image_url:
+            imageUrl || "",
 
-          image:
-            currentImage || "",
-
-          url:
+          source_url:
             urlInput
               ? urlInput.value.trim()
               : "",
@@ -1665,112 +1918,142 @@ if (addForm) {
         };
 
 
-        savedId =
-          gachas[index].id;
+        let savedId = null;
 
-      } else {
-
-        savedId =
-          Date.now();
+        const wasEditing =
+          editingId !== null;
 
 
-        gachas.unshift({
+        if (wasEditing) {
 
-          id:
-            savedId,
-
-          title,
-
-          releaseStatus:
-            undecided
-              ? "undecided"
-              : "month",
-
-          releaseYear:
-            undecided
-              ? ""
-              : Number(year),
-
-          releaseMonth:
-            undecided
-              ? ""
-              : Number(month),
-
-          releaseDate:
-            "",
-
-          image:
-            currentImage || "",
-
-          url:
-            urlInput
-              ? urlInput.value.trim()
-              : "",
-
-          memo:
-            memoInput
-              ? memoInput.value.trim()
-              : "",
-
-          author:
-            currentAuthor,
-
-          createdAt:
-            Date.now()
-
-        });
-
-      }
+          const {
+            data,
+            error
+          } =
+            await supabaseClient
+              .from(GACHA_TABLE)
+              .update(row)
+              .eq(
+                "id",
+                editingId
+              )
+              .select()
+              .single();
 
 
-      const saved =
-        saveData();
+          if (error) {
+            throw error;
+          }
 
 
-      if (!saved) {
-        return;
-      }
+          savedId =
+            data.id;
+
+        } else {
+
+          row.created_at =
+            Date.now();
 
 
-      const wasEditing =
-        editingId !== null;
+          const {
+            data,
+            error
+          } =
+            await supabaseClient
+              .from(GACHA_TABLE)
+              .insert(row)
+              .select()
+              .single();
 
 
-      render();
+          if (error) {
+            throw error;
+          }
 
 
-      closeScreen(
-        addScreen,
-        false
-      );
-
-
-      requestAnimationFrame(
-        () => {
-
-          requestAnimationFrame(
-            () => {
-
-              showDetail(
-                savedId
-              );
-
-
-              showToast(
-                wasEditing
-                  ? "変更を保存したよ"
-                  : "ポケットに入れたよ"
-              );
-
-
-              editingId =
-                null;
-
-            }
-          );
+          savedId =
+            data.id;
 
         }
-      );
+
+
+        await loadGachasFromSupabase();
+
+
+        closeScreen(
+          addScreen,
+          false
+        );
+
+
+        editingId =
+          null;
+
+
+        requestAnimationFrame(
+          () => {
+
+            requestAnimationFrame(
+              () => {
+
+                showDetail(
+                  savedId
+                );
+
+
+                showToast(
+                  wasEditing
+                    ? "変更を保存したよ"
+                    : "ポケットに入れたよ"
+                );
+
+              }
+            );
+
+          }
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Save error:",
+          error
+        );
+
+
+        alert(
+          "保存できませんでした。\n\n" +
+          (
+            error?.message ||
+            "Supabaseとの接続を確認してね"
+          )
+        );
+
+      } finally {
+
+        isSaving = false;
+
+
+        if (saveButton) {
+
+          saveButton.disabled =
+            false;
+
+
+          saveButton.innerHTML =
+            editingId !== null
+              ? `
+                  <span class="mini-capsule"></span>
+                  変更を保存
+                `
+              : `
+                  <span class="mini-capsule"></span>
+                  ポケットに入れる
+                `;
+
+        }
+
+      }
 
     }
   );
@@ -1815,7 +2098,7 @@ function showDetail(id) {
         ? `
           <img
             class="detail-image"
-            src="${item.image}"
+            src="${escapeHTML(item.image)}"
             alt=""
           >
         `
@@ -2127,6 +2410,9 @@ if (editButton) {
       currentImage =
         item.image || "";
 
+      currentImageFile =
+        null;
+
 
       setAuthor(
         item.author ||
@@ -2149,13 +2435,11 @@ if (editButton) {
         }
 
         if (releaseYear) {
-          releaseYear.value =
-            "";
+          releaseYear.value = "";
         }
 
         if (releaseMonth) {
-          releaseMonth.value =
-            "";
+          releaseMonth.value = "";
         }
 
       } else {
@@ -2237,7 +2521,7 @@ if (editButton) {
 
 
 /* =========================================
-   DELETE
+   DELETE FROM SUPABASE
 ========================================= */
 
 const deleteButton =
@@ -2250,7 +2534,7 @@ if (deleteButton) {
 
   deleteButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
       const item =
         gachas.find(
@@ -2276,17 +2560,33 @@ if (deleteButton) {
       }
 
 
-      gachas =
-        gachas.filter(
-          gacha =>
-            String(gacha.id) !==
-            String(detailId)
+      const {
+        error
+      } =
+        await supabaseClient
+          .from(GACHA_TABLE)
+          .delete()
+          .eq(
+            "id",
+            detailId
+          );
+
+
+      if (error) {
+
+        console.error(
+          "Delete error:",
+          error
         );
 
+        alert(
+          "削除できませんでした。\n" +
+          error.message
+        );
 
-      saveData();
+        return;
 
-      render();
+      }
 
 
       closeScreen(
@@ -2294,8 +2594,10 @@ if (deleteButton) {
       );
 
 
-      detailId =
-        null;
+      detailId = null;
+
+
+      await loadGachasFromSupabase();
 
 
       showToast(
@@ -2480,8 +2782,7 @@ function returnHomeFromSettings() {
 
   if (searchInput) {
 
-    searchInput.value =
-      "";
+    searchInput.value = "";
 
   }
 
@@ -2779,7 +3080,7 @@ if (defaultSortSelect) {
 
 
 /* =========================================
-   DELETE ALL
+   DELETE ALL FROM SUPABASE
 ========================================= */
 
 const deleteAllButton =
@@ -2792,7 +3093,7 @@ if (deleteAllButton) {
 
   deleteAllButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
       const ok =
         confirm(
@@ -2805,13 +3106,42 @@ if (deleteAllButton) {
       }
 
 
-      gachas =
-        [];
+      /*
+        created_at は登録時に必ず0以上になるので
+        全レコードを対象にする。
+      */
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from(GACHA_TABLE)
+          .delete()
+          .gte(
+            "created_at",
+            0
+          );
 
 
-      saveData();
+      if (error) {
 
-      render();
+        console.error(
+          "Delete all error:",
+          error
+        );
+
+        alert(
+          "削除できませんでした。\n" +
+          error.message
+        );
+
+        return;
+
+      }
+
+
+      await loadGachasFromSupabase();
+
 
       updateStats();
 
@@ -2942,56 +3272,95 @@ function showToast(message) {
 
 
 /* =========================================
+   REALTIME
+========================================= */
+
+function startRealtime() {
+
+  supabaseClient
+    .channel(
+      "gacha-pocket-realtime"
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: GACHA_TABLE
+      },
+      async () => {
+
+        await loadGachasFromSupabase();
+
+      }
+    )
+    .subscribe();
+
+}
+
+
+/* =========================================
    START
 ========================================= */
 
-createYearOptions();
+async function startApp() {
+
+  createYearOptions();
 
 
-const validStartFilters = [
-  "all",
-  "よしの",
-  "たけうち"
-];
+  const validStartFilters = [
+    "all",
+    "よしの",
+    "たけうち"
+  ];
 
 
-if (
-  !validStartFilters.includes(
-    currentFilter
-  )
-) {
+  if (
+    !validStartFilters.includes(
+      currentFilter
+    )
+  ) {
 
-  currentFilter =
-    "all";
+    currentFilter =
+      "all";
 
-  settings.filter =
-    "all";
+    settings.filter =
+      "all";
 
-  saveSettings();
+    saveSettings();
+
+  }
+
+
+  if (sortSelect) {
+
+    sortSelect.value =
+      settings.sort;
+
+  }
+
+
+  setViewMode(
+    settings.view,
+    false
+  );
+
+
+  updateFilterUI();
+
+  updateReleaseUI();
+
+  updateImageUI();
+
+  updateSettingsUI();
+
+
+  await loadGachasFromSupabase();
+
+
+  startRealtime();
 
 }
 
 
-if (sortSelect) {
-
-  sortSelect.value =
-    settings.sort;
-
-}
-
-
-setViewMode(
-  settings.view,
-  false
-);
-
-
-updateFilterUI();
-
-updateReleaseUI();
-
-updateImageUI();
-
-updateSettingsUI();
-
-render();
+startApp();
