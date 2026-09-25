@@ -7,7 +7,11 @@ const SUPABASE_URL =
 
 const SUPABASE_KEY =
   "sb_publishable_knbi7zS6UuBY6dqSfy9rFg_QXfn0i-W";
-
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 const STORAGE_KEY =
   "gacha-pocket-main-v2";
 
